@@ -1,10 +1,15 @@
 <launch>
 
+  <arg name="record"/>
+  <arg name="rviz"/>
+
+  <!-- Simulation parameters -->
   <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
   <arg name="x_pos" default="0.0"/>
   <arg name="y_pos" default="0.0"/>
   <arg name="z_pos" default="0.0"/>
 
+  <!-- Launch gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find rss_description)/worlds/rss.world"/>
     <arg name="paused" value="false"/>
@@ -14,8 +19,19 @@
     <arg name="debug" value="false"/>
   </include>
 
+  <!-- Start the robot simulation -->
   <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+  <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description -gazebo_namespace /gazebo" />
+  <param name="cmd_vel_topic_name" value="cmd_vel"/>
+  <node name="turtlebot3_drive" pkg="turtlebot3_gazebo" type="turtlebot3_drive" required="true" output="screen"/>
 
-  <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0" />
+    <param name="tf_prefix" value=""/>
+  </node>
+
+  <node pkg="rviz" type="rviz" name="rviz" if="$(arg rviz)" args="$(find rss_description)/rviz/turtlebot.rviz"/>
+
+  <node pkg="rosbag" type="record" name="rosbag_record" if="$(arg record)" args="record -a -o $(env HOME)/rosbags/turtlebot_sim_"/>
 
 </launch>
