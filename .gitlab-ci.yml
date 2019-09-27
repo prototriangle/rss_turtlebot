@@ -1,4 +1,4 @@
-image: ros:kinetic-ros-cre
+image: ros:kinetic-ros-core
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive 
