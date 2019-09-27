@@ -1,5 +1,5 @@
 build
 devel
-log
+logs
 .vscode
-.catkin_config
+.catkin_tools
