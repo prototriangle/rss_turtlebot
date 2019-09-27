@@ -1,0 +1,39 @@
+image: ros:kinetic-ros-cre
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive 
+  GIT_CLONE_PATH: '$CI_BUILDS_DIR/ros/src/$CI_PROJECT_NAME'
+
+cache:
+  paths:
+    - ccache/
+
+before_script:
+ #### Setup environment ####
+ - apt-get update -qq
+ - ROS_DISTRO=$(ls /opt/ros/)
+ - rosdep update
+ - mkdir -p $CI_BUILDS_DIR/ros/src
+ #########################################
+
+ #### install deb dependencies ####
+ - apt-get install -y python-pip python-catkin-tools python-rosdep zlib1g-dev wget
+ #########################################
+
+ #### install ROS dependencies ####
+ - cd $CI_BUILDS_DIR/ros/
+ - rosdep install --from-paths src -iy --rosdistro ${ROS_DISTRO}
+ #########################################
+
+catkin_tools:
+  stage: build
+  script:
+    - cd $CI_BUILDS_DIR/ros/
+    - catkin build --summarize --no-status --force-color
+
+catkin_tools_tests:
+  stage: test
+  script:
+    - cd $CI_BUILDS_DIR/ros/
+    - catkin run_tests --no-status --force-color
+    - catkin_test_results # Check if one of the tests failed!
