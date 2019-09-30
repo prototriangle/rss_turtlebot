@@ -3,3 +3,7 @@ devel
 logs
 .vscode
 .catkin_tools
+
+.idea
+**/.idea
+**/cmake-build-debug/
