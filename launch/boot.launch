@@ -1,7 +1,6 @@
 <launch>
 
   <arg name="record"/>
-  <arg name="rviz"/>
   <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
 
   <!-- Launch transform system -->
@@ -19,8 +18,6 @@
   <include file="$(find rss_control)/launch/mux.launch">
     <arg name="cmd_vel_out" value="/cmd_vel_out"/>
   </include>
-
-  <node pkg="rviz" type="rviz" name="rviz" if="$(arg rviz)" args="$(find rss_description)/rviz/turtlebot.rviz"/>
 
   <node pkg="rosbag" type="record" name="rosbag_record" if="$(arg record)" args="record -a -o $(env HOME)/rosbags/turtlebot_"/>
 
