@@ -17,7 +17,6 @@
 
 
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>gazebo_ros</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>tf</depend>
