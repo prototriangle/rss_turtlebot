@@ -16,7 +16,7 @@
 
   <!-- Start control stack -->
   <include file="$(find rss_control)/launch/mux.launch">
-    <arg name="cmd_vel_out" value="/cmd_vel_out"/>
+    <arg name="cmd_vel_out" value="/cmd_vel"/>
   </include>
 
   <node pkg="rosbag" type="record" name="rosbag_record" if="$(arg record)" args="record -a -o $(env HOME)/rosbags/turtlebot_"/>
