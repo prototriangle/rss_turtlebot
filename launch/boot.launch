@@ -1,0 +1,24 @@
+<launch>
+
+  <arg name="record"/>
+  <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
+
+  <!-- Launch transform system -->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0" />
+    <param name="tf_prefix" value=""/>
+  </node>
+
+  <!-- Start core turtlebot stack -->
+  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_core.launch"/>
+  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_lidar.launch"/> 
+
+  <!-- Start control stack -->
+  <include file="$(find rss_control)/launch/mux.launch">
+    <arg name="cmd_vel_out" value="/cmd_vel"/>
+  </include>
+
+  <node pkg="rosbag" type="record" name="rosbag_record" if="$(arg record)" args="record -a -o $(env HOME)/rosbags/turtlebot_"/>
+
+</launch>
