@@ -36,6 +36,20 @@
 #include <eigen3/Eigen/Core>
 
 
+struct PixelPosition {int x; int y;};
+
+struct Node {PixelPosition position;
+    PixelPosition parent;
+    int f_score=1000;
+    int g_score=1000;
+    int h_score=1000;
+};
+
+bool operator==(const PixelPosition& lhs, const PixelPosition& rhs)
+{
+    return ((lhs.x == rhs.x) && ( lhs.y == rhs.y));
+}
+
 
 class AStar {
 public:
@@ -47,13 +61,17 @@ public:
     std::string target_point_topic;
     float robot_radius;
 
-    void odomCallback(nav_msgs::Odometry &odom_msg);
-    void mapCallback(nav_msgs::OccupancyGrid &map_msg);
-    void targetCallback(geometry_msgs::Point &point_msg);
-
 private:
 
+    void odomCallback(nav_msgs::Odometry odom_msg);
+    void mapCallback(nav_msgs::OccupancyGrid map_msg);
+    void targetCallback(geometry_msgs::Point point_msg);
+
     bool checkTargetLocation(int target_x, int target_y);
+    Node getNodeMinimumF(std::vector<Node> &nodes);
+    Node findParentNode(PixelPosition position, std::vector<Node> &nodes);
+    bool checkIfNodeInList(Node searched_node, std::vector<Node> &nodes);
+    int nodeCost(PixelPosition node_positoin, PixelPosition target_position);
 
     ros::NodeHandle nh_;
     ros::Subscriber odom_sub_;
@@ -70,6 +88,9 @@ private:
     double x_pos_, y_pos_;
     int x_pos_pixels_, y_pos_pixels_;
     int target_x_pos_, target_y_pos_;
+    PixelPosition pixel_position_;
+
+    std::string publish_frame_; // This is the frame in which to publish stuff
 };
 
 #endif //RSS_CONTROL_A_STAR_H
