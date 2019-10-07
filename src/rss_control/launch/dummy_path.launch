@@ -1,0 +1,15 @@
+<launch>
+
+    <node pkg="rss_control" type="dummy_path" name="dummy_path" output="screen"/>
+
+    <node pkg="rss_control" type="controller_node" name="controller" output="screen">
+        <param name="debug" value="true"/>
+        <param name="path_in_topic" value="/path"/>
+        <param name="control_frequency" value="50"/>
+        <param name="forward_speed" value="0.1"/>
+        <param name="steering_p" value="1.0"/>
+        <param name="steering_i" value="0.0"/>
+        <param name="steering_d" value="0.0"/>
+    </node>
+
+</launch>

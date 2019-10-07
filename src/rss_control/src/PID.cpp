@@ -8,6 +8,8 @@ PID::PID() {
     kp_ = 0;
     ki_ = 0;
     kd_ = 0;
+    min_ = -5;
+    max_ = 5;
 }
 
 void PID::setCoefs(double kp, double ki, double kd) {

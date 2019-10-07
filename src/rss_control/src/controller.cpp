@@ -19,14 +19,15 @@ Controller::Controller() : nh_("~") {
     nh_.param<double>("steering_p", steering_p, 1);
     nh_.param<double>("steering_i", steering_i, 0);
     nh_.param<double>("steering_d", steering_d, 0.2);
-    nh_.param<double>("forward_speed", forward_speed, 0.5);
+    nh_.param<double>("forward_speed", forward_speed, 0.1);
 
     steering_pid.setCoefs(steering_p, steering_i, steering_d);
+    steering_pid.setConstraints(-1, 1);
 
     // subscribers and publishers
     path_sub_ = nh_.subscribe<nav_msgs::Path>(path_in_topic, 1, &Controller::pathCallback, this);
     control_pub_ = nh_.advertise<geometry_msgs::Twist>("command", 10);
-    next_point_pub_ = nh_.advertise<geometry_msgs::Point>("next_point", 10);
+    next_point_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("next_point", 10);
 
     got_path_ = false;
 }
@@ -54,7 +55,7 @@ void Controller::controlLoop() {
     tf::StampedTransform transform;
 
     try {
-        listener.lookupTransform(MAP_FRAME, ROBOT_FRAME, ros::Time(0), transform);
+        listener.lookupTransform(path_frame_, ROBOT_FRAME, ros::Time(0), transform);
     }
     catch(tf::TransformException ex){
         ROS_ERROR("controller: Couldn't get transform: %s",ex.what());
@@ -68,13 +69,17 @@ void Controller::controlLoop() {
         ROS_DEBUG("No more waypoints. Maybe reached goal?");
     } else {
         // get the next point for which we are aiming for
+        ROS_DEBUG("Have %d waypoints left", (int)waypoints_.size());
         auto next_waypoint = waypoints_.front();
+        ROS_DEBUG("Next waypoint is %f %f", next_waypoint.pose.position.x, next_waypoint.pose.position.y);
 
         // see if we have reached said point
         auto dist = euclidDistance(transform.getOrigin(), next_waypoint.pose);
         if (dist < waypoint_radius) {
             // remove first entry
+            ROS_DEBUG("Reached waypoint");
             waypoints_.erase(waypoints_.begin());
+
         } else {
             // set constant forward velocity
             control_msg.linear.x = forward_speed;
@@ -82,8 +87,9 @@ void Controller::controlLoop() {
             // do PID for the steering
             geometry_msgs::PoseStamped next_waypoint_transformed;
             listener.transformPose(ROBOT_FRAME, next_waypoint, next_waypoint_transformed);
-            auto error = pow(next_waypoint_transformed.pose.position.x, 2);
+            auto error = next_waypoint_transformed.pose.position.y;
             control_msg.angular.z = steering_pid.compute(error);
+            ROS_DEBUG("Steering error %f", error);
         }
         next_point_pub_.publish(next_waypoint);
     }
