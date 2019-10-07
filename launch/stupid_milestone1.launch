@@ -1,0 +1,33 @@
+<launch>
+
+  <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
+
+  <!-- Launch transform system -->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0" />
+    <param name="tf_prefix" value=""/>
+  </node>
+
+  <!-- Start core turtlebot stack -->
+  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_core.launch"/>
+  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_lidar.launch"/> 
+
+  <!-- Start control stack -->
+  <include file="$(find rss_control)/launch/mux.launch">
+    <arg name="cmd_vel_out" value="/cmd_vel"/>
+  </include>
+
+  <node pkg="rss_control" type="dummy_path" name="dummy_path" output="screen"/>
+
+  <node pkg="rss_control" type="controller_node" name="controller" output="screen">
+      <param name="debug" value="true"/>
+      <param name="path_in_topic" value="/path"/>
+      <param name="control_frequency" value="50"/>
+      <param name="forward_speed" value="0.1"/>
+      <param name="steering_p" value="1.0"/>
+      <param name="steering_i" value="0.0"/>
+      <param name="steering_d" value="0.0"/>
+  </node>
+
+</launch>
