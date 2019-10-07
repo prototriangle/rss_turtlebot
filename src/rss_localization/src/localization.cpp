@@ -160,10 +160,6 @@ namespace rss {
         }
     };
 
-
-    LaserScan currentScan;
-    OccupancyGrid occupancyGrid;
-
     void scanCallback(const LaserScan::ConstPtr &msg) {
         currentScan = *msg;
     }
@@ -205,6 +201,9 @@ int main(int argc, char **argv) {
     ros::Subscriber scan_sub = n.subscribe("scan", 20, scanCallback);
     ros::Publisher map_pub = n.advertise<OccupancyGrid>("grid_map", 2);
     ros::Rate loop_rate(5);
+
+    LaserScan currentScan;
+    OccupancyGrid occupancyGrid;
 
     occupancyGrid.header.frame_id = "scan";
     occupancyGrid.header.seq = 0;
