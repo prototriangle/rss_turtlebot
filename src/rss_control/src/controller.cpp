@@ -81,15 +81,23 @@ void Controller::controlLoop() {
             waypoints_.erase(waypoints_.begin());
 
         } else {
-            // set constant forward velocity
-            control_msg.linear.x = forward_speed;
-
             // do PID for the steering
             geometry_msgs::PoseStamped next_waypoint_transformed;
             listener.transformPose(ROBOT_FRAME, next_waypoint, next_waypoint_transformed);
             auto error = next_waypoint_transformed.pose.position.y;
             control_msg.angular.z = steering_pid.compute(error);
             ROS_DEBUG("Steering error %f", error);
+
+	    // now calculate the forward speed based on my empirical function here
+	    if (control_msg.angular.z > forward_speed/2) {
+		if (control_msg.angular.z > forward_speed) {
+		  control_msg.linear.x = 0;
+		} else {
+		  control_msg.linear.x = forward_speed - control_msg.angular.z;
+		}
+	    } else {
+		control_msg.linear.x = forward_speed;
+	    }
         }
         next_point_pub_.publish(next_waypoint);
     }
