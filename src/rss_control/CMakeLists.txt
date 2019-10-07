@@ -37,12 +37,21 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_library(PID src/PID.cpp)
+
 add_executable(a_star_node src/a_star.cpp)
+add_executable(controller_node src/controller.cpp)
 
 target_link_libraries(a_star_node
         ${catkin_LIBRARIES}
         )
 
+target_link_libraries(controller_node
+        PID
+        ${catkin_LIBRARIES}
+        )
+
+add_dependencies(controller_node PID)
 
 #############
 ## Install ##
