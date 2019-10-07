@@ -26,6 +26,8 @@ namespace rss {
     };
 
     struct Measurement {
+        Header header;
+        vector<float> ranges;
     };
 
     struct WeightedParticle {
@@ -53,7 +55,8 @@ namespace rss {
     };
 
     struct Action {
-        SimplePose motion;
+        double rot;
+        double tra;
         double motorPower;
     };
 
@@ -63,10 +66,77 @@ namespace rss {
 
     };
 
+    class LidarMeasurementModel : MeasurementModel {
+    public:
+        LidarMeasurementModel() {
+            // init
+            auto i = 1;
+        }
+
+        double run(const Measurement &z, SimplePose x) final {
+
+        }
+    };
+
     class MotionModel {
     public:
         virtual SimplePose run(SimplePose currentPose, const Action &action) = 0;
     };
+
+    class OdometryMotionModel : MotionModel {
+
+        random_device rd{};
+        default_random_engine gen{rd()};
+        double a1, a2, a3, a4;
+    public:
+        explicit OdometryMotionModel(
+                double a1 = 0.25,
+                double a2 = 0.25,
+                double a3 = 0.26,
+                double a4 = 0.25) : a1(a1), a2(a2), a3(a3), a4(a4) {
+        }
+
+        SimplePose run(SimplePose currentPose, const Action &action) final {
+            double stddev_rot = a1 * abs(action.rot) + a2 * abs(action.tra);
+            double delta_rot = normal_distribution<>{action.rot, stddev_rot}(gen);
+
+            double stddev_tra = a3 * abs(action.tra) + a4 * abs(action.rot);
+            double delta_tra = normal_distribution<>{action.tra + stddev_tra}(gen);
+
+            return {
+                    currentPose.x + delta_tra * cos(currentPose.theta + delta_rot),
+                    currentPose.y + delta_tra * sin(currentPose.theta + delta_rot),
+                    currentPose.theta + delta_rot
+            };
+
+        }
+    };
+
+    class ScanProcessor {
+    public:
+        static LaserScan currentScan;
+
+        static Measurement getMeasurement() {
+            return {currentScan.header, currentScan.ranges};
+        }
+
+        static void recCallback(const LaserScan::ConstPtr &msg) {
+            currentScan = *msg;
+        }
+    };
+
+    LaserScan ScanProcessor::currentScan = LaserScan();
+
+    class MapHandler {
+    public:
+        static OccupancyGrid currentMap;
+
+        static void recCallback(const OccupancyGrid::ConstPtr &msg) {
+            currentMap = *msg;
+        }
+    };
+
+    OccupancyGrid MapHandler::currentMap = OccupancyGrid();
 
     class Particle {
     private:
@@ -100,7 +170,6 @@ namespace rss {
         default_random_engine gen{rd()};
         uniform_real_distribution<> uniformLinDist = uniform_real_distribution<>(0.0, 1.0);
         uniform_real_distribution<> uniformRotDist = uniform_real_distribution<>(-M_PI, M_PI);
-        normal_distribution<> normalDist = normal_distribution<>(0.0, 1.0);
     public:
         ParticleFilterStateEstimator(MeasurementModel *measurementModel,
                                      MotionModel *motionModel,
@@ -160,20 +229,17 @@ namespace rss {
         }
     };
 
-    void scanCallback(const LaserScan::ConstPtr &msg) {
-        currentScan = *msg;
-    }
 
     Pose sample_motion_model(Action action, Pose pose) {
 
     }
 
-    double measurement_model(Measurement measurement, Pose pose, OccupancyGrid &grid) {
+    double measurement_model(const Measurement &measurement, Pose pose, OccupancyGrid &grid) {
         return {};
     }
 
     vector<Pose>
-    mcl(vector<Pose> &particles, Action action, Measurement measurement, OccupancyGrid &map) {
+    mcl(vector<Pose> &particles, Action action, const Measurement &measurement, OccupancyGrid &map) {
         vector<WeightedParticle> weighted_particles;
         //
         for (Pose particle : particles) {
@@ -190,7 +256,6 @@ namespace rss {
 
         return new_particles;
     }
-
 }
 
 using namespace rss;
@@ -198,11 +263,11 @@ using namespace rss;
 int main(int argc, char **argv) {
     ros::init(argc, argv, "localization");
     ros::NodeHandle n;
-    ros::Subscriber scan_sub = n.subscribe("scan", 20, scanCallback);
-    ros::Publisher map_pub = n.advertise<OccupancyGrid>("grid_map", 2);
-    ros::Rate loop_rate(5);
+    ros::Subscriber scanSub = n.subscribe("scan", 20, ScanProcessor::recCallback);
+    ros::Subscriber initialMapSub = n.subscribe("initial_map", 20, MapHandler::recCallback);
+    ros::Publisher mapPub = n.advertise<OccupancyGrid>("grid_map", 2);
+    ros::Rate loopRate(5);
 
-    LaserScan currentScan;
     OccupancyGrid occupancyGrid;
 
     occupancyGrid.header.frame_id = "scan";
@@ -215,9 +280,9 @@ int main(int argc, char **argv) {
         occupancyGrid.header.stamp = ros::Time::now();
         ++occupancyGrid.header.seq;
         occupancyGrid.info.map_load_time = ros::Time();
-        map_pub.publish(occupancyGrid);
+        mapPub.publish(occupancyGrid);
         ros::spinOnce();
-        loop_rate.sleep();
+        loopRate.sleep();
     }
 
     return 0;
