@@ -33,6 +33,7 @@ Controller::Controller() : nh_("~") {
 
 
 void Controller::pathCallback(nav_msgs::Path path_msg) {
+    ROS_INFO("Controller: Received path");
     path_frame_ = path_msg.header.frame_id;
     waypoints_ = path_msg.poses;
     got_path_ = true;
@@ -43,6 +44,12 @@ double euclidDistance(tf::Vector3 a, geometry_msgs::Pose b) {
 }
 
 void Controller::controlLoop() {
+    if (!got_path_) {
+        ROS_INFO("Controller: Haven't received path yet...");
+        ros::Duration(1.0).sleep();
+        return;
+    }
+
     // first get our current pose
     tf::StampedTransform transform;
 
@@ -52,6 +59,7 @@ void Controller::controlLoop() {
     catch(tf::TransformException ex){
         ROS_ERROR("controller: Couldn't get transform: %s",ex.what());
         ros::Duration(1.0).sleep();
+        return;
     }
 
     geometry_msgs::Twist control_msg;
