@@ -60,26 +60,22 @@ namespace rss {
 
     class MeasurementModel {
     public:
-        double run(const Measurement &z, SimplePose x) {
-            return 0.0;
-        }
+        virtual double run(const Measurement &z, SimplePose x) = 0;
 
     };
 
     class MotionModel {
     public:
-        SimplePose run(SimplePose currentPose, const Action &action) {
-            return {0, 0, 0};
-        }
+        virtual SimplePose run(SimplePose currentPose, const Action &action) = 0;
     };
 
     class Particle {
     private:
-        MeasurementModel measurementModel;
-        MotionModel motionModel;
+        MeasurementModel *measurementModel;
+        MotionModel *motionModel;
     public:
-        Particle(MeasurementModel measurementModel,
-                 MotionModel motionModel,
+        Particle(MeasurementModel *measurementModel,
+                 MotionModel *motionModel,
                  SimplePose initialPose = {0, 0, 0})
                 : measurementModel(measurementModel), motionModel(motionModel), pose(initialPose) {
         }
@@ -87,11 +83,11 @@ namespace rss {
         SimplePose pose;
 
         void move(const Action &action) {
-            pose = motionModel.run(pose, action);
+            pose = motionModel->run(pose, action);
         }
 
         double measurementProb(const Measurement &z) {
-            return measurementModel.run(z, pose);
+            return measurementModel->run(z, pose);
         }
     };
 
@@ -107,8 +103,8 @@ namespace rss {
         uniform_real_distribution<> uniformRotDist = uniform_real_distribution<>(-M_PI, M_PI);
         normal_distribution<> normalDist = normal_distribution<>(0.0, 1.0);
     public:
-        ParticleFilterStateEstimator(MeasurementModel measurementModel,
-                                     MotionModel motionModel,
+        ParticleFilterStateEstimator(MeasurementModel *measurementModel,
+                                     MotionModel *motionModel,
                                      unsigned long particleCount)
                 : particleCount(particleCount) {
             // Initialisation
