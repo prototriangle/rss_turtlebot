@@ -3,8 +3,7 @@
 #include "sensor_msgs/LaserScan.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/Pose.h"
-#include "geometry_msgs/Twist.h"
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include <random>
 
