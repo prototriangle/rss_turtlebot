@@ -1,0 +1,4 @@
+map_image_params/width: 459
+map_image_params/height: 459
+map_image_params/resolution: 0.01
+map_image_params/init_map_name: "initial.bmp"
