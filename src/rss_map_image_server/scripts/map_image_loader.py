@@ -15,6 +15,9 @@ def handle_load_map(req):
     width = rospy.get_param("/map_image_params/width")
     height = rospy.get_param("/map_image_params/height")
     res = rospy.get_param("/map_image_params/resolution")
+    print("/map_image_params/width " + width)
+    print("/map_image_params/height " + height)
+    print("/map_image_params/resolution " + res)
     name = req.name
     if name == "":
         name = rospy.get_param("/map_image_params/initial_map_name")
