@@ -25,7 +25,7 @@ def handle_load_map(req):
         print "Load Map: " + name
     try:
         image = cv2.imread(name, cv2.IMREAD_GRAYSCALE)
-        image = cv2.flip(image, -1)
+        image = cv2.flip(image, 1)
         image = image * (100.0 / 255.0)
         image = np.clip(image, 0, 100)
         map = OccupancyGrid()
