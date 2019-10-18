@@ -34,6 +34,7 @@
     <!-- Load world -->
     <include>
       <uri>model://battleground</uri>
+      <pose>2.1 0.65 0.0 0 0 0</pose>
     </include>
 
     <scene>
