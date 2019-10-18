@@ -22,6 +22,7 @@
   <depend>rospy</depend>
   <depend>tf</depend>
   <depend>urdf</depend>
+  <depend>message_to_tf</depend>
 
   <depend>turtlebot3_description</depend>
   <depend>turtlebot3_gazebo</depend>
