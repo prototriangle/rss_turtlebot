@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rss_description)
+project(rss_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -154,14 +154,6 @@ include_directories(
 #############
 ## Install ##
 #############
-
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
-
-install(DIRECTORY models worlds 
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
 
 #############
 ## Testing ##

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>rss_description</name>
+  <name>rss_control</name>
   <version>0.0.0</version>
-  <description>The rss_description package</description>
+  <description>The rss_control package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -17,19 +17,13 @@
 
 
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>gazebo_ros</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>tf</depend>
   <depend>urdf</depend>
-  <depend>message_to_tf</depend>
 
-  <depend>turtlebot3_description</depend>
-  <depend>turtlebot3_gazebo</depend>
-  <depend>turtlebot3_bringup</depend>
+  <depend>twist_mux</depend>
 
   <export>
-    <gazebo_ros gazebo_media_path="${prefix}"/>
-    <gazebo_ros gazebo_model_path="${prefix}/models"/>
   </export>
 </package>
