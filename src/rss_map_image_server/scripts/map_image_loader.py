@@ -33,15 +33,24 @@ def handle_load_map(req):
         map.header.frame_id = map_frame
         map.header.seq = seq
         seq = seq + 1
+        pub.publish(map)
         return LoadMapResponse(err="Success", map=map)
     except:
         return LoadMapResponse(err="Loading failed!")
 
 
 def load_map_server():
+    global pub
     rospy.init_node('load_map_server')
     s = rospy.Service('load_map', LoadMap, handle_load_map)
-    print "Ready to load maps"
+    pub = rospy.Publisher('map', OccupancyGrid, queue_size=2, latch=True)  # type: rospy.Publisher
+    loadInit = rospy.get_param("/map_image_loader/load_init")  # type: bool
+    rospy.loginfo("Ready to load maps")
+    if loadInit:
+        rospy.loginfo("Loading initial map...")
+        req = LoadMapRequest()
+        req.name = ""
+        handle_load_map(req)
     rospy.spin()
 
 
