@@ -31,7 +31,7 @@ def handle_load_map(req):
         map.header.frame_id = map_frame
         map.header.seq = seq
         seq = seq + 1
-        return LoadMapResponse(err="Loading Succeeded", map=map)
+        return LoadMapResponse(err="Success", map=map)
     except:
         return LoadMapResponse(err="Loading failed!")
 
