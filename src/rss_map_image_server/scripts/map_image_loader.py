@@ -1,26 +1,25 @@
 #!/usr/bin/env python
 from nav_msgs.msg import OccupancyGrid, MapMetaData
-from rss_map_image_server.srv import LoadMap, LoadMapResponse
+from rss_map_image_server.srv import LoadMap, LoadMapResponse, LoadMapRequest
 import rospy
 import numpy as np
 import cv2
 
 seq = 0
 map_frame = "map"
+pub = None
 
 
 def handle_load_map(req):
     global seq
     global map_frame
+    global pub
     width = rospy.get_param("/map_image_params/width")
     height = rospy.get_param("/map_image_params/height")
     res = rospy.get_param("/map_image_params/resolution")
-    print("/map_image_params/width " + width)
-    print("/map_image_params/height " + height)
-    print("/map_image_params/resolution " + res)
     name = req.name
     if name == "":
-        name = rospy.get_param("/map_image_params/initial_map_name")
+        name = rospy.get_param("/map_image_loader/init_map_name")
         print "Load Initial Map: " + name
     else:
         print "Load Map: " + name
