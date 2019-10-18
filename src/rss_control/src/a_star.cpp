@@ -82,9 +82,9 @@ void AStar::mapCallback(nav_msgs::OccupancyGrid map_msg) {
         int row = i / map_width;
         int column = i - row*map_width;
         map(row, column) = map_msg.data[i];
-        ROS_DEBUG("Inserting data to row %d column %d", row, column);
     }
 
+    ROS_DEBUG("map loaded OK");
     got_map_ = true;
 }
 
@@ -99,10 +99,11 @@ void AStar::odomCallback(nav_msgs::Odometry odom_msg) {
     // NB. Converts floats to ints .. bad stuff might happen
     x_pos_ = odom_msg.pose.pose.position.x;
     y_pos_ = odom_msg.pose.pose.position.y;
-    x_pos_pixels_ = (int)(odom_msg.pose.pose.position.x * map_resolution_);
-    y_pos_pixels_ = (int)(odom_msg.pose.pose.position.y * map_resolution_);
+    x_pos_pixels_ = (int)(odom_msg.pose.pose.position.x / map_resolution_);
+    y_pos_pixels_ = (int)(odom_msg.pose.pose.position.y / map_resolution_);
     pixel_position_.x = x_pos_pixels_;
     pixel_position_.y = y_pos_pixels_;
+    ROS_DEBUG("Got current position %d %d", pixel_position_.x, pixel_position_.y);
 
     got_odom_ = true;
 }
@@ -125,8 +126,8 @@ void AStar::targetCallback(geometry_msgs::Point point_msg) {
     }
 
     // convert target position to pixels
-    target_x_pos_ = (int)(point_msg.x * map_resolution_);
-    target_y_pos_ = (int)(point_msg.y * map_resolution_);
+    target_x_pos_ = (int)(point_msg.x / map_resolution_);
+    target_y_pos_ = (int)(point_msg.y / map_resolution_);
     PixelPosition target_position = {target_x_pos_, target_y_pos_};
 
     /********** Now do the A* algorithm **********/
@@ -152,6 +153,7 @@ void AStar::targetCallback(geometry_msgs::Point point_msg) {
         // check if we reached goal
         if (current_node.position == target_position) {
             ROS_DEBUG("Yaaas! Reached target node. Starting path generation");
+            ROS_DEBUG("Current node: %d %d   Target node: %d %d", current_node.position.x, current_node.position.y, target_position.x, target_position.y);
 
             auto current = current_node;
             // check if we have reached starting node
@@ -208,8 +210,8 @@ void AStar::targetCallback(geometry_msgs::Point point_msg) {
         path_msg.header.stamp = ros::Time::now();
         for (auto const& pos: path) {
             geometry_msgs::PoseStamped geo_point;
-            geo_point.pose.position.x = (float)pos.x / map_resolution_;
-            geo_point.pose.position.y = (float)pos.y / map_resolution_;
+            geo_point.pose.position.x = (float)pos.x * map_resolution_;
+            geo_point.pose.position.y = (float)pos.y * map_resolution_;
             path_msg.poses.push_back(geo_point);
         }
         path_pub_.publish(path_msg);
@@ -232,13 +234,13 @@ bool AStar::checkTargetLocation(int target_x, int target_y) {
         ROS_DEBUG("Checking point %f, %f in circumference", x_to_check, y_to_check);
 
         // first check if the target fits in the map
-        if ((x_to_check*map_resolution_ > map_width) || (y_to_check*map_resolution_ > map_height)) {
+        if ((x_to_check/map_resolution_ > map_width) || (y_to_check/map_resolution_ > map_height)) {
             ROS_ERROR("Requested point is not within the map");
             return false;
         }
 
         // now check pixel value on costmap and see if it is OK
-        auto map_value = map(x_to_check*map_resolution_, y_to_check*map_resolution_);
+        auto map_value = map(x_to_check/map_resolution_, y_to_check/map_resolution_);
         return !(map_value != 0);
     }
 }
