@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   tf
-  turtlebot3_gazebo
   urdf
 )
 
