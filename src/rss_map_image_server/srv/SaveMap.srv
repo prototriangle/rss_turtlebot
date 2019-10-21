@@ -1,0 +1,4 @@
+nav_msgs/OccupancyGrid map
+string name
+---
+string err

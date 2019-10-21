@@ -25,11 +25,15 @@
 #ifndef RSS_CONTROL_A_STAR_H
 #define RSS_CONTROL_A_STAR_H
 
+#define MAP_FRAME "map"
+#define ROBOT_FRAME "base_footprint"
+
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
-#include <geometry_msgs/Point.h>
+#include <geometry_msgs/PointStamped.h>
+#include <visualization_msgs/Marker.h>
 
 #include <string>
 #include <eigen3/Eigen/Dense>
@@ -40,9 +44,9 @@ struct PixelPosition {int x; int y;};
 
 struct Node {PixelPosition position;
     PixelPosition parent;
-    int f_score=1000;
-    int g_score=1000;
-    int h_score=1000;
+    int f_score=0;
+    int g_score=0;
+    int h_score=0;
 };
 
 bool operator==(const PixelPosition& lhs, const PixelPosition& rhs)
@@ -60,24 +64,35 @@ public:
     std::string map_in_topic;
     std::string target_point_topic;
     float robot_radius;
+  visualization_msgs::Marker marker_msg;
 
 private:
 
     void odomCallback(nav_msgs::Odometry odom_msg);
     void mapCallback(nav_msgs::OccupancyGrid map_msg);
-    void targetCallback(geometry_msgs::Point point_msg);
+    void targetCallback(geometry_msgs::PointStamped point_msg);
 
-    bool checkTargetLocation(int target_x, int target_y);
+    bool checkTargetLocation(double target_x, double target_y);
     Node getNodeMinimumF(std::vector<Node> &nodes);
     Node findParentNode(PixelPosition position, std::vector<Node> &nodes);
-    bool checkIfNodeInList(Node searched_node, std::vector<Node> &nodes);
+    int checkIfNodeInList(Node searched_node, std::vector<Node> &nodes);
     int nodeCost(PixelPosition node_positoin, PixelPosition target_position);
+  bool publishVisualisation(std::vector<Node> &nodes);
+
+    int toPixel(double val) {
+        return val/map_resolution_;
+    }
+
+    double toEuclid(int val) {
+        return val * map_resolution_;
+    }
 
     ros::NodeHandle nh_;
     ros::Subscriber odom_sub_;
     ros::Subscriber map_sub_;
     ros::Subscriber target_point_sub_;
     ros::Publisher path_pub_;
+    ros::Publisher viz_pub_;
 
     float map_resolution_;
     int map_width, map_height;

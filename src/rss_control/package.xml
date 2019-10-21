@@ -13,8 +13,8 @@
   <depend>tf</depend>
   <depend>nav_msgs</depend>
   <depend>geometry_msgs</depend>
-
   <depend>twist_mux</depend>
+  <depend>visualization_msgs</depend>
 
   <export>
   </export>
