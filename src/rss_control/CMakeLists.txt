@@ -17,13 +17,14 @@ find_package(catkin REQUIRED COMPONENTS
         nav_msgs
         geometry_msgs
         tf
+        visualization_msgs
         )
 
 
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES rss_description
-  CATKIN_DEPENDS roscpp nav_msgs geometry_msgs tf
+  CATKIN_DEPENDS roscpp nav_msgs geometry_msgs tf visualization_msgs
 #  DEPENDS system_lib
 )
 
