@@ -13,13 +13,13 @@ Controller::Controller() : nh_("~") {
         }
     }
 
-    nh_.param<std::string>("path_in_topic", path_in_topic, "/path");
+    nh_.param<std::string>("path_in_topic", path_in_topic, "/a_star/path");
     nh_.param<double>("waypoint_radius", waypoint_radius, 0.1);
     nh_.param<int>("control_frequency", control_frequeny, 50);
     nh_.param<double>("steering_p", steering_p, 1);
     nh_.param<double>("steering_i", steering_i, 0);
     nh_.param<double>("steering_d", steering_d, 0.2);
-    nh_.param<double>("forward_speed", forward_speed, 0.1);
+    nh_.param<double>("forward_speed", forward_speed, 0.3);
 
     steering_pid.setCoefs(steering_p, steering_i, steering_d);
     steering_pid.setConstraints(-1, 1);

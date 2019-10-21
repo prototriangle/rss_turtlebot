@@ -220,12 +220,14 @@ void AStar::targetCallback(geometry_msgs::PointStamped point_msg) {
     if (!path.empty()) {
         // we actually have a good path
         nav_msgs::Path path_msg;
-        path_msg.header.frame_id = publish_frame_;
+        path_msg.header.frame_id = MAP_FRAME;
         path_msg.header.stamp = ros::Time::now();
-        for (auto const& pos: path) {
+          for (int i=path.size()-1; i>0; i=i-5) {
             geometry_msgs::PoseStamped geo_point;
-            geo_point.pose.position.x = (float)pos.x * map_resolution_;
-            geo_point.pose.position.y = (float)pos.y * map_resolution_;
+            geo_point.header.frame_id = MAP_FRAME;
+            geo_point.pose.position.x = (float)path[i].x * map_resolution_;
+            geo_point.pose.position.y = (float)path[i].y * map_resolution_;
+            geo_point.pose.orientation.w = 1.0;
             path_msg.poses.push_back(geo_point);
         }
         path_pub_.publish(path_msg);

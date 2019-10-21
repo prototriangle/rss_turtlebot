@@ -1,10 +1,10 @@
 <launch>
     <node pkg="rss_control" type="controller_node" name="controller" output="screen">
         <param name="debug" value="true"/>
-        <param name="path_in_topic" value="/path"/>
+        <param name="path_in_topic" value="/a_star/path"/>
         <param name="control_frequency" value="50"/>
-        <param name="forward_speed" value="0.5"/>
-        <param name="steering_p" value="0.5"/>
+        <param name="forward_speed" value="0.3"/>
+        <param name="steering_p" value="4.0"/>
         <param name="steering_i" value="0.0"/>
         <param name="steering_d" value="0.2"/>
     </node>
