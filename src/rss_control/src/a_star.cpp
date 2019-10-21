@@ -38,18 +38,18 @@ AStar::AStar() : nh_("~") {
 
     nh_.param<std::string>("odom_in_topic", odom_in_topic, "/odom");
     nh_.param<std::string>("map_in_topic", map_in_topic, "/map");
-    nh_.param<std::string>("target_point_topic", target_point_topic, "/target");
+    nh_.param<std::string>("target_point_topic", target_point_topic, "/clicked_point");
     nh_.param<float>("robot_radius", robot_radius, 0.25);
 
     ROS_DEBUG("Got parameter odom_in_topic %s", odom_in_topic.c_str());
-    ROS_DEBUG("Got parameter map_in_topic %s", map_in_topic.c_str());
+    ROS_DEBUG("Got parameter map_in_tomap_resolution_pic %s", map_in_topic.c_str());
     ROS_DEBUG("Got parameter target_point_topic %s", target_point_topic.c_str());
     ROS_DEBUG("Got parameter robot_radius %f", robot_radius);
 
     // subscribers and publishers
     odom_sub_ = nh_.subscribe<nav_msgs::Odometry>(odom_in_topic, 1, &AStar::odomCallback, this);
     map_sub_ = nh_.subscribe<nav_msgs::OccupancyGrid>(map_in_topic, 1, &AStar::mapCallback, this);
-    target_point_sub_ = nh_.subscribe<geometry_msgs::Point>(target_point_topic, 1, &AStar::targetCallback, this);
+    target_point_sub_ = nh_.subscribe<geometry_msgs::PointStamped>(target_point_topic, 1, &AStar::targetCallback, this);
     path_pub_ = nh_.advertise<nav_msgs::Path>("path", 10, true);
 
     got_map_ = false;
@@ -108,7 +108,7 @@ void AStar::odomCallback(nav_msgs::Odometry odom_msg) {
     got_odom_ = true;
 }
 
-void AStar::targetCallback(geometry_msgs::Point point_msg) {
+void AStar::targetCallback(geometry_msgs::PointStamped point_msg) {
     ROS_DEBUG("Starting target point callback");
     if (!got_map_) {
         ROS_DEBUG("Still don't have the map. Quitting..");
@@ -120,14 +120,14 @@ void AStar::targetCallback(geometry_msgs::Point point_msg) {
     }
 
     // check if target location is reachable in the first place
-    if (!checkTargetLocation(point_msg.x, point_msg.y)) {
+    if (!checkTargetLocation(point_msg.point.x, point_msg.point.y)) {
         ROS_ERROR("Target location requested is not reachable on the map");
         return;
     }
 
     // convert target position to pixels
-    target_x_pos_ = (int)(point_msg.x / map_resolution_);
-    target_y_pos_ = (int)(point_msg.y / map_resolution_);
+    target_x_pos_ = (int)(point_msg.point.x / map_resolution_);
+    target_y_pos_ = (int)(point_msg.point.y / map_resolution_);
     PixelPosition target_position = {target_x_pos_, target_y_pos_};
 
     /********** Now do the A* algorithm **********/

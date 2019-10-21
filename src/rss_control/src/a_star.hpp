@@ -29,7 +29,7 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
-#include <geometry_msgs/Point.h>
+#include <geometry_msgs/PointStamped.h>
 
 #include <string>
 #include <eigen3/Eigen/Dense>
@@ -65,7 +65,7 @@ private:
 
     void odomCallback(nav_msgs::Odometry odom_msg);
     void mapCallback(nav_msgs::OccupancyGrid map_msg);
-    void targetCallback(geometry_msgs::Point point_msg);
+    void targetCallback(geometry_msgs::PointStamped point_msg);
 
     bool checkTargetLocation(int target_x, int target_y);
     Node getNodeMinimumF(std::vector<Node> &nodes);
