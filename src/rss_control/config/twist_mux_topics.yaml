@@ -7,6 +7,11 @@
 
 topics:
 -
+  name    : controller
+  topic   : /controller/command
+  timeout : 1.0
+  priority: 50
+-
   name    : rqt
   topic   : /rqt/command
   timeout : 1.0

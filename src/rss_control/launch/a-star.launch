@@ -1,0 +1,9 @@
+<launch>
+    <node pkg="rss_control" type="a_star_node" name="a_star" output="screen">
+        <param name="debug" value="false"/>
+        <param name="odom_in_topic" value="/gt_pose"/>
+        <param name="map_in_topic" value="/map"/>
+        <param name="target_point_topic" value="/clicked_point"/>
+        <param name="robot_radius" value="0.2"/>
+    </node>
+</launch>

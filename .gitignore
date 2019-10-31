@@ -5,3 +5,5 @@ cmake-build-debug
 .vscode
 .catkin_tools
 .idea
+**/.idea
+**/cmake-build-debug/
