@@ -1,7 +1,7 @@
 #ifndef RSS_LOCALIZATION_MEASUREMENTMODEL_H
 #define RSS_LOCALIZATION_MEASUREMENTMODEL_H
 
-#include "util.h"
+#include "rss_grid_localization/util.h"
 
 namespace rss {
 

@@ -1,5 +1,5 @@
-#include "ScanProcessor.h"
-#include "util.h"
+#include "rss_grid_localization/ScanProcessor.h"
+#include "rss_grid_localization/util.h"
 #include "sensor_msgs/LaserScan.h"
 
 using namespace sensor_msgs;

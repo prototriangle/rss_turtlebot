@@ -1,4 +1,4 @@
-#include "MapHandler.h"
+#include "rss_grid_localization/MapHandler.h"
 #include "nav_msgs/OccupancyGrid.h"
 
 using namespace nav_msgs;

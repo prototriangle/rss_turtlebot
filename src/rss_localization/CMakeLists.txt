@@ -117,7 +117,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-        # include
+        include
         ${catkin_INCLUDE_DIRS}
 )
 
@@ -134,7 +134,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME} src/localization.cpp src/util.h src/ScanProcessor.cpp src/ScanProcessor.h src/MapHandler.cpp src/MapHandler.h src/MotionModel.h src/MeasurementModel.h src/OdometryMotionModel.cpp src/OdometryMotionModel.h src/LidarMeasurementModel.cpp src/LidarMeasurementModel.h src/ParticleFilterStateEstimator.cpp src/ParticleFilterStateEstimator.h)
+add_executable(${PROJECT_NAME} src/localization.cpp include/rss_grid_localization/util.h src/ScanProcessor.cpp include/rss_grid_localization/ScanProcessor.h src/MapHandler.cpp include/rss_grid_localization/MapHandler.h include/rss_grid_localization/MotionModel.h include/rss_grid_localization/MeasurementModel.h src/OdometryMotionModel.cpp include/rss_grid_localization/OdometryMotionModel.h src/LidarMeasurementModel.cpp include/rss_grid_localization/LidarMeasurementModel.h src/ParticleFilterStateEstimator.cpp include/rss_grid_localization/ParticleFilterStateEstimator.h)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
