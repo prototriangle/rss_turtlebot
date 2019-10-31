@@ -16,3 +16,8 @@ topics:
   topic   : /rqt/command
   timeout : 1.0
   priority: 100
+-
+  name    : avoidance
+  topic   : /avoidance/cmd
+  timeout : 1.0
+  priority: 50
