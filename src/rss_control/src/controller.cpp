@@ -89,8 +89,8 @@ void Controller::controlLoop() {
             ROS_DEBUG("Steering error %f", error);
 
 	    // now calculate the forward speed based on my empirical function here
-	    if (control_msg.angular.z > forward_speed/2) {
-		if (control_msg.angular.z > forward_speed) {
+	    if (fabs(control_msg.angular.z) > forward_speed/2) {
+		if (fabs(control_msg.angular.z) > forward_speed) {
 		  control_msg.linear.x = 0;
 		} else {
 		  control_msg.linear.x = forward_speed - control_msg.angular.z;
