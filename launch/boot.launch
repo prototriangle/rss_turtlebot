@@ -12,12 +12,18 @@
 
   <!-- Start core turtlebot stack -->
   <include file="$(find turtlebot3_bringup)/launch/turtlebot3_core.launch"/>
-  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_lidar.launch"/> 
+  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_lidar.launch"/>
 
   <!-- Start control stack -->
   <include file="$(find rss_control)/launch/mux.launch">
     <arg name="cmd_vel_out" value="/cmd_vel"/>
   </include>
+
+  <!-- Load lidar filter which just removes points around a radius from the robot -->
+  <node pkg="lidar_filter" type="lidar_filter_node" name="lidar_filter" output="screen">
+    <param name="scan_in_topic" value="/scan"/>
+    <param name="filter_radius" value="0.175"/> <!-- in meteres -->
+  </node>
 
   <node pkg="rosbag" type="record" name="rosbag_record" if="$(arg record)" args="record -a -o $(env HOME)/rosbags/turtlebot_"/>
 
