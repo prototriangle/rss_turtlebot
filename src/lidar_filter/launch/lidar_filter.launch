@@ -1,0 +1,7 @@
+<launch>
+    <node pkg="lidar_filter" type="lidar_filter_node" name="lidar_filter" output="screen">
+        <param name="debug" value="true"/>
+        <param name="scan_in_topic" value="/scan"/>
+        <param name="filter_radius" value="0.175"/> <!-- in meteres -->
+    </node>
+</launch>

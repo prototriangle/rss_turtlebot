@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>lidar_filter</name>
+  <version>0.0.0</version>
+  <description>The lidar_filter package</description>
+
+  <maintainer email="ignat.m.georgiev@gmail.com">ignat</maintainer>
+
+  <license>MIT</license>
+
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+  </export>
+</package>
