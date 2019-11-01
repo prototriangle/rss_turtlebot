@@ -15,7 +15,7 @@
     <arg name="world_name" value="$(find rss_description)/worlds/rss.world"/>
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
-    <arg name="gui" value="true"/>
+    <arg name="gui" value="false"/>
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
   </include>
@@ -38,6 +38,24 @@
     <arg name="cmd_vel_out" value="/cmd_vel"/>
   </include>
 
+      <node pkg="rss_control" type="a_star_node" name="a_star" output="screen">
+        <param name="debug" value="false"/>
+        <param name="odom_in_topic" value="/gt_pose"/>
+        <param name="map_in_topic" value="/map"/>
+        <param name="target_point_topic" value="/clicked_point"/>
+        <param name="robot_radius" value="0.25"/>
+    </node>
+
+        <node pkg="rss_control" type="controller_node" name="controller" output="screen">
+        <param name="debug" value="true"/>
+        <param name="path_in_topic" value="/a_star/path"/>
+        <param name="control_frequency" value="50"/>
+        <param name="forward_speed" value="0.1"/>
+        <param name="steering_p" value="4.0"/>
+        <param name="steering_i" value="0.0"/>
+        <param name="steering_d" value="0.2"/>
+    </node>
+
   <node pkg="rqt_gui" type="rqt_gui" name="rqt" args="--perspective-file $(find rss_description)/rviz/rss.perspective"/>
 
   <node pkg="rviz" type="rviz" name="rviz" if="$(arg rviz)" args="-d $(find rss_description)/rviz/turtlebot.rviz"/>
@@ -48,7 +66,7 @@
   <rosparam command="load" file="$(find rss_map_image_server)/config/map_params.yaml" ns="map_image_params"/>
   <node name="map_image_saver" pkg="rss_map_image_server" type="map_image_saver.py" output="screen"/>
   <node name="map_image_loader" pkg="rss_map_image_server" type="map_image_loader.py" output="screen">
-    <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial.bmp"/>
+    <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial_filled.bmp"/>
     <param name="load_init" value="True"/>
   </node>
 

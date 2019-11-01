@@ -2,7 +2,7 @@
     <rosparam command="load" file="$(find rss_map_image_server)/config/map_params.yaml" ns="map_image_params"/>
     <node name="map_image_saver" pkg="rss_map_image_server" type="map_image_saver.py" output="screen"/>
     <node name="map_image_loader" pkg="rss_map_image_server" type="map_image_loader.py" output="screen">
-        <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial.bmp"/>
+        <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial_filled.bmp"/>
         <param name="load_init" value="True"/>
     </node>
 </launch>
