@@ -5,6 +5,7 @@
 #include "std_msgs/Header.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Point.h"
+#include "geometry_msgs/Transform.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "tf2/utils.h"
 #include "tf2/LinearMath/Quaternion.h"
@@ -12,6 +13,7 @@
 #include <cmath>
 #include <vector>
 #include <random>
+#include <geometry_msgs/Twist.h>
 
 using namespace std;
 using namespace std_msgs;
@@ -19,106 +21,23 @@ using namespace nav_msgs;
 
 namespace rss {
 
-    //<editor-fold desc="Utility">
 
+    inline tf2::Vector3 vectorFromPoint(const geometry_msgs::Point &p) {
+        return {p.x, p.y, p.z};
+    }
 
-    struct RangeAnglePair {
-        double range;
-        double angle;
-    };
-
-    struct Measurement {
-        Header header;
-        vector<RangeAnglePair> data;
-    };
-
-    struct WeightedParticle {
-        geometry_msgs::Pose pose;
-        double weight;
-    };
-
-    class SimplePose {
-    public:
-        SimplePose(double x, double y, double theta) : x(x), y(y), theta(theta) {}
-
-        double x;
-        double y;
-        double theta;
-
-        SimplePose operator+(const SimplePose &pose) {
-            return {x + pose.x, y + pose.y, theta + pose.theta};
-        }
-
-        void operator+=(const SimplePose &pose) {
-            x += pose.x;
-            y += pose.y;
-            theta += pose.theta;
-        }
-    };
-
-    struct Action {
-        double rot;
-        double trans;
-        double motorPower;
-    };
-
-    struct Map {
-        OccupancyGrid grid;
-        bool valid = false;
-    };
-
-    struct MapPoint {
-        unsigned long x;
-        unsigned long y;
-    };
-
-    static geometry_msgs::Point normalisedToWorldCoord(const geometry_msgs::Point &p) {
+    inline geometry_msgs::Point pointFromVector(const tf2::Vector3 &v) {
+        geometry_msgs::Point p;
+        p.x = v.getX();
+        p.y = v.getY();
+        p.z = v.getZ();
         return p;
     }
 
-    static geometry_msgs::Point worldToNormalisedCoord(const geometry_msgs::Point &p) {
-        return p;
-    }
-
-    static MapPoint cellIndexToMapPoint(const unsigned long &i, const Map &map) {
-        return {i % map.grid.info.width, i / map.grid.info.height};
-    }
-
-    static MapPoint worldToGridCoords(const double &x, const double &y, const Map &map) {
-        tf2::Quaternion orientation;
-        tf2::fromMsg(map.grid.info.origin.orientation, orientation);
-        double theta = tf2::getYaw(orientation);
-        double ct = cos(theta);
-        double st = sin(theta);
-        double xp = map.grid.info.origin.position.x + x * ct - y * st;
-        double yp = map.grid.info.origin.position.y + y * ct + x * st;
-        return {(unsigned int) floor(abs(xp / map.grid.info.resolution)),
-                (unsigned int) floor(abs(yp / map.grid.info.resolution))};
-    }
-
-    static tf2::Vector3 gridToWorldCoords(const MapPoint &point, const Map &map) {
-        tf2::Quaternion orientation;
-        tf2::fromMsg(map.grid.info.origin.orientation, orientation);
-        double theta = tf2::getYaw(orientation);
-        double x = double(point.x) * map.grid.info.resolution;
-        double y = double(point.y) * map.grid.info.resolution;
-        double ct = cos(theta);
-        double st = sin(theta);
-        return {map.grid.info.origin.position.x + x * ct - y * st,
-                map.grid.info.origin.position.y + y * ct + x * st,
-                map.grid.info.origin.position.z};
-    }
-
-    static double distanceOnFromMap(const MapPoint &point1, const MapPoint &point2, const Map &map) {
-        tf2::Vector3 p1 = gridToWorldCoords(point1, map);
-        tf2::Vector3 p2 = gridToWorldCoords(point2, map);
-        return tf2::tf2Distance(p1, p2);
-    }
-    //</editor-fold>
 
     //<editor-fold desc="Maths">
 
-    static double normaliseAngle(const double angle) {
+    static double normalisedAngle(const double angle) {
         return angle - floor(angle / M_2_PI) * M_2_PI;
     }
 
@@ -421,6 +340,142 @@ namespace rss {
     }
 
     //</editor-fold>
+
+    //<editor-fold desc="Utility">
+
+
+    struct RangeAnglePair {
+        double range;
+        double angle;
+    };
+
+    struct Measurement {
+        Header header;
+        vector<RangeAnglePair> data;
+    };
+
+    struct WeightedParticle {
+        geometry_msgs::Pose pose;
+        double weight;
+    };
+
+    class SimplePose {
+    public:
+        SimplePose(double x, double y, double theta) : x(x), y(y), theta(theta) {}
+
+        double x;
+        double y;
+        double theta;
+
+        SimplePose operator+(const SimplePose &pose) {
+            return {x + pose.x, y + pose.y, theta + pose.theta};
+        }
+
+        void operator+=(const SimplePose &pose) {
+            x += pose.x;
+            y += pose.y;
+            theta += pose.theta;
+        }
+    };
+
+    struct Action {
+        double rot{};
+        double trans{};
+        double motorPower{};
+
+        Action operator+(const Action &a) {
+            rot = normalisedAngle(rot + a.rot);
+            trans += a.trans;
+            motorPower = (motorPower + a.motorPower) / 2.0;
+        }
+
+        Action operator-(const Action &a) {
+            rot = normalisedAngle(rot - a.rot);
+            trans -= a.trans;
+            motorPower = (motorPower + a.motorPower) / 2.0;
+        }
+
+        Action(const geometry_msgs::Pose &pose) {
+            rot = tf2::getYaw(pose.orientation);
+            tf2::Vector3 v;
+            tf2::fromMsg(pose.position, v);
+            trans = v.length();
+        }
+
+        Action(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2) {
+            rot = normalisedAngle(tf2::getYaw(pose2.orientation) - tf2::getYaw(pose1.orientation));
+            trans = tf2::tf2Distance(vectorFromPoint(pose1.position), vectorFromPoint(pose2.position));
+        }
+
+        Action(const geometry_msgs::Twist &twist, const double &dt) {
+            rot = normalisedAngle(twist.angular.y * dt);
+            trans = twist.linear.x * dt;
+        }
+
+        Action(const geometry_msgs::Transform &t) {
+            rot = tf2::getYaw(t.rotation);
+            tf2::Vector3 v;
+            tf2::fromMsg(t.translation, v);
+            trans = v.length();
+        }
+
+        Action() = default;
+    };
+
+    struct Map {
+        OccupancyGrid grid;
+        bool valid = false;
+    };
+
+    struct MapPoint {
+        unsigned long x;
+        unsigned long y;
+    };
+
+    static geometry_msgs::Point normalisedToWorldCoord(const geometry_msgs::Point &p) {
+        return p;
+    }
+
+    static geometry_msgs::Point worldToNormalisedCoord(const geometry_msgs::Point &p) {
+        return p;
+    }
+
+    static MapPoint cellIndexToMapPoint(const unsigned long &i, const Map &map) {
+        return {i % map.grid.info.width, i / map.grid.info.height};
+    }
+
+    static MapPoint worldToGridCoords(const double &x, const double &y, const Map &map) {
+        tf2::Quaternion orientation;
+        tf2::fromMsg(map.grid.info.origin.orientation, orientation);
+        double theta = tf2::getYaw(orientation);
+        double ct = cos(theta);
+        double st = sin(theta);
+        double xp = map.grid.info.origin.position.x + x * ct - y * st;
+        double yp = map.grid.info.origin.position.y + y * ct + x * st;
+        return {(unsigned int) floor(abs(xp / map.grid.info.resolution)),
+                (unsigned int) floor(abs(yp / map.grid.info.resolution))};
+    }
+
+    static tf2::Vector3 gridToWorldCoords(const MapPoint &point, const Map &map) {
+        tf2::Quaternion orientation;
+        tf2::fromMsg(map.grid.info.origin.orientation, orientation);
+        double theta = tf2::getYaw(orientation);
+        double x = double(point.x) * map.grid.info.resolution;
+        double y = double(point.y) * map.grid.info.resolution;
+        double ct = cos(theta);
+        double st = sin(theta);
+        return {map.grid.info.origin.position.x + x * ct - y * st,
+                map.grid.info.origin.position.y + y * ct + x * st,
+                map.grid.info.origin.position.z};
+    }
+
+    static double distanceOnFromMap(const MapPoint &point1, const MapPoint &point2, const Map &map) {
+        tf2::Vector3 p1 = gridToWorldCoords(point1, map);
+        tf2::Vector3 p2 = gridToWorldCoords(point2, map);
+        return tf2::tf2Distance(p1, p2);
+    }
+    //</editor-fold>
+
 }
 
 #endif //RSS_LOCALIZATION_UTIL_H
