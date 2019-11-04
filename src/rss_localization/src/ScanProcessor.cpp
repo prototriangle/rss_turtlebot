@@ -24,12 +24,16 @@ namespace rss {
         angles.reserve(rayCount);
         if (rayCount == 0) {
             // No rays default to 360 rays
-            rayCount = 360;
-            this->rayCount = rayCount;
+            this->rayCount = defaultRayCount;
         }
-        double degIncr = 360.0 / rayCount;
+        double degIncr = 360.0 / this->rayCount;
         for (double currAngle = 0; currAngle < 360; currAngle += degIncr)
             angles.push_back(currAngle);
+    }
+
+    ScanProcessor::ScanProcessor(unsigned int rayCount, float badDataValue) : ScanProcessor(rayCount) {
+        this->badDataValue = badDataValue;
+        this->useBadDataValue = true;
     }
 
 }
