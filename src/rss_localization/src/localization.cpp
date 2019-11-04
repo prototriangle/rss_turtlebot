@@ -4,9 +4,12 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "nav_msgs/OccupancyGrid.h"
+#include "nav_msgs/Odometry.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/PoseArray.h"
+#include "geometry_msgs/TransformStamped.h"
+#include "tf2_ros/buffer.h"
 #include "rss_grid_localization/ParticleFilterStateEstimator.h"
 #include "rss_grid_localization/OdometryMotionModel.h"
 #include "rss_grid_localization/LidarMeasurementModel.h"
@@ -20,17 +23,24 @@ using namespace sensor_msgs;
 
 using namespace rss;
 
-Action lastAction;
+Odometry lastUsedOdom;
+Odometry lastReceivedOdom;
 bool newAction = false;
 
-void actionCallback(const Twist::ConstPtr &msg) {
-    tf2::Vector3 l;
-    tf2::fromMsg(msg->linear, l);
-    lastAction.trans = l.length();
-    tf2::Vector3 a;
-    tf2::fromMsg(msg->angular, a);
-    lastAction.rot = a.getZ();
+void odomCallback(const Odometry::ConstPtr &msg) {
     newAction = true;
+    lastReceivedOdom = *msg;
+}
+
+Action getAction() {
+    ros::Duration stamp = lastReceivedOdom.header.stamp - lastUsedOdom.header.stamp;
+    return {lastReceivedOdom.twist.twist, stamp.toSec()};
+}
+
+bool shouldResample(const Action &action) {
+    static const double trans_threshold = 0.01;
+    static const double rot_threshold = 0.03;
+    return (action.trans > trans_threshold && action.rot > rot_threshold);
 }
 
 int main(int argc, char **argv) {
@@ -40,7 +50,7 @@ int main(int argc, char **argv) {
     auto scanProcessor = ScanProcessor(360);
     ros::Subscriber scanSub = n.subscribe("scan", 20, &ScanProcessor::recCallback, &scanProcessor);
     ros::Subscriber initialMapSub = n.subscribe("map", 20, MapHandler::recCallback);
-    ros::Subscriber actionSub = n.subscribe("action", 20, actionCallback);
+    ros::Subscriber odomSub = n.subscribe("odom", 20, odomCallback);
     ros::Publisher posesPub = n.advertise<PoseArray>("pose_estimate", 2);
     ros::Rate loopRate(5);
 
@@ -55,16 +65,19 @@ int main(int argc, char **argv) {
     currentPoses.poses.reserve(particleCount);
     unsigned long seq = 0;
     while (ros::ok()) {
+
         if (MapHandler::currentMap.valid && newAction) {
             newAction = false;
+            Action action = getAction();
 
             pf.initialiseParticles(MapHandler::currentMap);
 
-            pf.actionUpdate(lastAction);
+            pf.actionUpdate(action);
 
             pf.measurementUpdate(scanProcessor.getMeasurement(), MapHandler::currentMap);
 
-            pf.particleUpdate();
+            if (shouldResample(action))
+                pf.particleUpdate();
 
             currentPoses.poses.clear();
             currentPoses.poses.reserve(particleCount);
