@@ -86,6 +86,8 @@ int main(int argc, char **argv) {
                 tf2::Quaternion q;
                 q.setEuler(p.pose.theta, 0, 0);
                 newPose.orientation = tf2::toMsg(q);
+                newPose.position.x = p.pose.x;
+                newPose.position.y = p.pose.y;
             }
             currentPoses.header = Header();
             currentPoses.header.frame_id = "map";
