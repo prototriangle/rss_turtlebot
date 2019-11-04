@@ -14,7 +14,7 @@ namespace rss {
 
     ParticleFilterStateEstimator::ParticleFilterStateEstimator(MeasurementModel *measurementModel,
                                                                MotionModel *motionModel, unsigned long particleCount)
-            : particleCount(particleCount) {
+            : particleCount(particleCount), measurementModel(measurementModel), motionModel(motionModel) {
         // Initialisation
     }
 
