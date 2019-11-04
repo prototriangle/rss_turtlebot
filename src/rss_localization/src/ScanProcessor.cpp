@@ -11,7 +11,12 @@ namespace rss {
         vector<RangeAnglePair> ranges;
         ranges.reserve(rayCount);
         for (unsigned int i = 0; i < rayCount; ++i) {
-            ranges.push_back({currentScan.ranges[i], angles[i]});
+            if (!useBadDataValue || currentScan.ranges[i] != badDataValue) {
+                if (currentScan.ranges[i] > currentScan.range_min
+                    && currentScan.ranges[i] < currentScan.range_max) {
+                    ranges.push_back({currentScan.ranges[i], angles[i]});
+                }
+            }
         }
         return {currentScan.header, ranges};
     }
