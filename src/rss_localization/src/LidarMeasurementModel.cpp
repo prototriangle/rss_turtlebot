@@ -5,7 +5,17 @@
 namespace rss {
 
     double LidarMeasurementModel::run(const Measurement &z, const SimplePose &x, const Map &map) {
-        double q = 1;
+        double q = 1.0;
+        auto mp = worldToGridCoords(x.x, x.y, map);
+        unsigned long hi = map.grid.data.size();
+        unsigned long i = mp.x + mp.y * map.grid.info.width;
+        bool oob = hi < i;
+        if (oob) {
+            i = hi;
+        }
+        if (oob || map.grid.data[i] > 50) {//occupied
+            return 0.001;
+        }
         for (RangeAnglePair z_k : z.data) {
             double pred = compute_noise_free_range(z_k.angle, x, map);
             double p =
