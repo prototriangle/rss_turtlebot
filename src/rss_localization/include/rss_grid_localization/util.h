@@ -408,7 +408,7 @@ namespace rss {
         }
 
         Action(const geometry_msgs::Twist &twist, const double &dt) {
-            rot = normalisedAngle(twist.angular.y * dt);
+            rot = twist.angular.z * dt;
             trans = twist.linear.x * dt;
         }
 
