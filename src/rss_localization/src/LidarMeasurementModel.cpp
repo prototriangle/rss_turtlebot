@@ -58,7 +58,7 @@ namespace rss {
     }
 
     double LidarMeasurementModel::p_hit(const double &range, const double &prediction) {
-        if (range >= 0.0 && range <= z_max) {
+        if (range >= 0.0 && range <= max_range) {
             return normal_pdf(range, prediction, sigma_hit);
         } else {
             return 0.0;
@@ -66,7 +66,7 @@ namespace rss {
     }
 
     double LidarMeasurementModel::p_short(const double &range, const double &prediction) {
-        if (range >= 0.0 && range <= z_max) {
+        if (range >= 0.0 && range <= max_range) {
             double cumulative = 1 - exp(-lambda_short * prediction);
             return lambda_short * exp(-lambda_short * range) / cumulative;
         } else {
@@ -75,7 +75,7 @@ namespace rss {
     }
 
     double LidarMeasurementModel::p_max(const double &range) {
-        if (range == z_max) {
+        if (range == max_range) {
             return 1.0;
         } else {
             return 0.0;
@@ -83,8 +83,8 @@ namespace rss {
     }
 
     double LidarMeasurementModel::p_rand(const double &range) {
-        if (range >= 0.0 && range <= z_max) {
-            return 1.0 / z_max;
+        if (range >= 0.0 && range <= max_range) {
+            return 1.0 / max_range;
         } else {
             return 0.0;
         }

@@ -27,6 +27,7 @@ namespace rss {
         double sigma_hit = 20.0;
         double lambda_short = 20.0;
         double z_hit, z_short, z_max, z_rand;
+        double max_range = 4.0;
     public:
         LidarMeasurementModel(double z_hit, double z_short, double z_max, double z_rand);
 
