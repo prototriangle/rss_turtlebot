@@ -425,6 +425,8 @@ namespace rss {
     struct Map {
         OccupancyGrid grid;
         bool valid = false;
+        vector<unsigned long> freeSpaceIndices;
+        vector<unsigned long> occupiedSpaceIndices;
     };
 
     struct MapPoint {
