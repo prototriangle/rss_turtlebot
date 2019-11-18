@@ -94,7 +94,7 @@ void AStar::mapCallback(nav_msgs::OccupancyGrid map_msg) {
     map = Eigen::MatrixXd(map_width, map_height);
     for (int i = 0; i < map_msg.data.size(); i++) {
         int row = i / map_width;
-        int column = i - row*map_width;
+        int column = i % map_width;
         map(row, column) = map_msg.data[i];
     }
 
@@ -262,14 +262,14 @@ bool AStar::checkTargetLocation(double target_x, double target_y) {
         return false;
     }
 
-    std::vector<double > angles = linspace(0., M_PI, 50.);
+    std::vector<double> angles = linspace(0., 2*M_PI, 50.);
 
     for (auto angle: angles) {
         // compute point around the circumference of the robot
-        double x_to_check = robot_radius*cos(angle) + target_x;
-        double y_to_check = robot_radius*sin(angle) + target_y;
+        double x_to_check = robot_radius*sin(angle) + target_x;
+        double y_to_check = robot_radius*cos(angle) + target_y;
 
-        // ROS_DEBUG("Checking point %f, %f in circumference", x_to_check, y_to_check);
+        ROS_DEBUG("Checking point %f, %f in circumference with angle %f", x_to_check, y_to_check, angle);
 
         // first check if the target fits in the map
         if ((toPixel(x_to_check) >= map_width) || (toPixel(y_to_check) >= map_height)
@@ -279,7 +279,7 @@ bool AStar::checkTargetLocation(double target_x, double target_y) {
         }
 
         // now check pixel value on costmap and see if it is OK
-        ROS_DEBUG("Checking map value of %d %d", toPixel(x_to_check), toPixel(y_to_check));
+        ROS_DEBUG("Checking map value of %d %d with angle %f", toPixel(x_to_check), toPixel(y_to_check), angle);
         // x and y axis are swapped for some unknown reason
         auto map_value = map(toPixel(y_to_check), toPixel(x_to_check));
         if (map_value != 0) {
