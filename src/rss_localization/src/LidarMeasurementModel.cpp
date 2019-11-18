@@ -1,6 +1,7 @@
 #include "rss_grid_localization/util.h"
 #include "rss_grid_localization/LidarMeasurementModel.h"
 
+
 namespace rss {
 
     double LidarMeasurementModel::run(const Measurement &z, const SimplePose &x, const Map &map) {
