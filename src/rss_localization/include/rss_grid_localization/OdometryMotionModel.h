@@ -14,6 +14,10 @@ namespace rss {
         random_device rd{};
         default_random_engine gen{rd()};
         double a1, a2, a3, a4;
+        const double sigma1 = 0.002;
+        const double sigma2 = 0.01;
+        normal_distribution<> normalDistribution1{0.0, sigma1};
+        normal_distribution<> normalDistribution2{0.0, sigma2};
     public:
         explicit OdometryMotionModel(
                 double a1 = 0.25,
