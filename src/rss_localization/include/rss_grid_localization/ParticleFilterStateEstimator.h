@@ -30,9 +30,6 @@ namespace rss {
             double measurementProb(const Measurement &z, const Map &map);
         };
 
-        unsigned long particleCount;
-        vector<double> weights;
-
         static random_device rd;
         static default_random_engine gen;
         static uniform_real_distribution<> uniformLinDist;
@@ -42,6 +39,7 @@ namespace rss {
         MotionModel *motionModel;
 
     public:
+        unsigned long particleCount;
         vector<Particle> particles;
 
         ParticleFilterStateEstimator(MeasurementModel *measurementModel,
@@ -57,6 +55,8 @@ namespace rss {
         void stochasticUniversalSampling();
 
         void initialiseParticles(const Map &map);
+
+        vector<double> weights;
     };
 
 }
