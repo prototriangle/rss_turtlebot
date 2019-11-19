@@ -3,13 +3,18 @@
 #include "rss_grid_localization/MapHandler.h"
 #include "ros/ros.h"
 #include "std_msgs/String.h"
+#include "std_msgs/ColorRGBA.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Odometry.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/TransformStamped.h"
-#include "tf2_ros/buffer.h"
+#include "visualization_msgs/MarkerArray.h"
+#include "tf/tf.h"
+#include "tf/transform_broadcaster.h"
+#include "tf/transform_datatypes.h"
+#include "tf/LinearMath/Transform.h"
 #include "rss_grid_localization/ParticleFilterStateEstimator.h"
 #include "rss_grid_localization/OdometryMotionModel.h"
 #include "rss_grid_localization/LidarMeasurementModel.h"
@@ -20,6 +25,7 @@ using namespace std_msgs;
 using namespace nav_msgs;
 using namespace geometry_msgs;
 using namespace sensor_msgs;
+using namespace visualization_msgs;
 
 using namespace rss;
 
