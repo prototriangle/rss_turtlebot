@@ -43,6 +43,14 @@ namespace rss {
         return (v < lo) ? lo : (hi < v) ? hi : v;
     }
 
+    static double negLogProb(const double p) {
+        if (p <= 0 || p > 1) {
+            ROS_ERROR("(Negative log prob.) Processing probability not in (0, 1]: p = %f", p);
+            return 0.0;
+        }
+        double l = 0.0 - log(p);
+    }
+
     static double normalisedAngle(const double angle) {
         return angle - floor(angle / M_2_PI) * M_2_PI;
     }

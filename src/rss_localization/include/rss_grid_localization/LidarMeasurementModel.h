@@ -31,7 +31,7 @@ namespace rss {
     public:
         LidarMeasurementModel(double z_hit, double z_short, double z_max, double z_rand);
 
-        double run(const Measurement &z, const SimplePose &x, const Map &map) final;
+        double run(const Measurement &z, const SimplePose &pose, const Map &map) final;
 
     private:
         double compute_noise_free_range(const double &angle, const SimplePose &pose, const Map &map);
@@ -48,6 +48,9 @@ namespace rss {
 
         static bool withinMap(unsigned int x, unsigned int y, const Map &map);
 
+        static bool withinMap(const MapPoint &p, const Map &map);
+
+        double likelihoodLookup(MapPoint point, const Map &map);
     };
 }
 
