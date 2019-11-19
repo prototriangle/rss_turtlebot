@@ -38,6 +38,13 @@ void odomCallback(const Odometry::ConstPtr &msg) {
     lastReceivedOdom = *msg;
 }
 
+bool newPoint = false;
+PointStamped clicked;
+void clickedPointCallback(const PointStamped::ConstPtr &msg) {
+    clicked = *msg;
+    newPoint = true;
+}
+
 Action getAction() {
     newAction = false;
     ros::Duration stamp = lastReceivedOdom.header.stamp - lastUsedOdom.header.stamp;
