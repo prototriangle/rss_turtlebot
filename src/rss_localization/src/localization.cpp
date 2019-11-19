@@ -39,13 +39,16 @@ void odomCallback(const Odometry::ConstPtr &msg) {
 }
 
 Action getAction() {
+    newAction = false;
     ros::Duration stamp = lastReceivedOdom.header.stamp - lastUsedOdom.header.stamp;
+    lastUsedOdom = lastReceivedOdom;
     return {lastReceivedOdom.twist.twist, stamp.toSec()};
 }
 
 bool shouldResample(const Action &action) {
-    static const double trans_threshold = 0.01;
-    static const double rot_threshold = 0.03;
+    static const double trans_threshold = 0.0005;
+    static const double rot_threshold = 0.0001;
+//    return true;
     return (action.trans > trans_threshold && action.rot > rot_threshold);
 }
 
@@ -73,7 +76,7 @@ int main(int argc, char **argv) {
     while (ros::ok()) {
 
         if (MapHandler::currentMap.valid && newAction) {
-            newAction = false;
+            ROS_INFO("New Action");
             Action action = getAction();
 
             pf.initialiseParticles(MapHandler::currentMap);
