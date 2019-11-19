@@ -27,7 +27,10 @@ namespace rss {
     }
 
     void ParticleFilterStateEstimator::measurementUpdate(const Measurement &z, const Map &m) {
-        vector<double> tempWeights(particleCount);
+        weights.clear();
+        weights.reserve(particleCount);
+        vector<double> tempWeights;
+        tempWeights.reserve(particleCount);
         double total = 0.0;
         for (Particle &particle : particles) {
             double prob = particle.measurementProb(z, m);
@@ -35,8 +38,9 @@ namespace rss {
             tempWeights.push_back(prob);
         }
         // Normalise weights
-        for (double &weight : weights) {
-            weight = weight / total;
+        for (double &tempWeight : tempWeights) {
+            tempWeight = tempWeight / total;
+            weights.push_back(tempWeight);
         }
     }
 
