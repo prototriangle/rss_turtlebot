@@ -37,6 +37,12 @@ namespace rss {
 
     //<editor-fold desc="Maths">
 
+    template<class T>
+    constexpr const T& clamp( const T& v, const T& lo, const T& hi )
+    {
+        return (v < lo) ? lo : (hi < v) ? hi : v;
+    }
+
     static double normalisedAngle(const double angle) {
         return angle - floor(angle / M_2_PI) * M_2_PI;
     }
