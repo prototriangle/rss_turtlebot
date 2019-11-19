@@ -18,22 +18,26 @@ namespace rss {
         }
         for (RangeAnglePair z_k : z.data) {
             double pred = compute_noise_free_range(z_k.angle, x, map);
+            auto pHit = p_hit(z_k.range, pred);
+            auto pShort = p_short(z_k.range, pred);
+            auto pMax = p_max(z_k.range);
+            auto pRand = p_rand(z_k.range);
             double p =
-                    z_hit * p_hit(z_k.range, pred)
-                    + z_short * p_short(z_k.range, pred)
-                    + z_max * p_max(z_k.range)
-                    + z_rand * p_rand(z_k.range);
+                    z_hit * pHit
+                    + z_short * pShort
+                    + z_max * pMax
+                    + z_rand * pRand;
             q *= p;
         }
-        return q;
+        return q / double(z.data.size());
     }
 
     double
     LidarMeasurementModel::compute_noise_free_range(const double &angle, const SimplePose &pose, const Map &map) {
         static const unsigned int t_max = 1024;
-        double theta = rad2deg(angle + pose.theta);
-        double ray_x = costable_lookup((unsigned int) theta);
-        double ray_y = sintable_lookup((unsigned int) theta);
+        double theta = angle + pose.theta;
+        double ray_x = cos(theta);
+        double ray_y = sin(theta);
         unsigned int t = 0;
         int offset_x, offset_y;
         MapPoint origin = worldToGridCoords(pose.x, pose.y, map);
