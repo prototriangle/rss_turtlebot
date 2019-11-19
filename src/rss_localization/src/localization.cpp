@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
     ROS_INFO("STARTING LOCALIZATION...");
     auto scanProcessor = ScanProcessor(360);
     ros::Subscriber scanSub = n.subscribe("scan", 20, &ScanProcessor::recCallback, &scanProcessor);
-    ros::Subscriber initialMapSub = n.subscribe("map", 20, MapHandler::recCallback);
+    ros::Subscriber initialMapSub = n.subscribe("lf", 20, MapHandler::recCallback);
     ros::Subscriber odomSub = n.subscribe("odom", 20, odomCallback);
     ros::Publisher posesPub = n.advertise<PoseArray>("particles", 2);
     ros::Publisher posePub = n.advertise<PoseStamped>("pose_estimate", 2);
