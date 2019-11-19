@@ -96,7 +96,7 @@ namespace rss {
             beta += increment;
             while (beta > weights[index]) {
                 beta = beta - weights[index];
-                ROS_INFO("BETA %f", beta);
+//                ROS_INFO("BETA %f", beta);
                 index = (index + 1) % particleCount;
             };
             tempParticles.push_back(particles[index]);
@@ -107,7 +107,7 @@ namespace rss {
     }
 
     void ParticleFilterStateEstimator::initialiseParticles(const Map &map) {
-        ROS_INFO("Initialising Particles (%lu)", particleCount);
+        ROS_DEBUG("Initialising Particles (%lu)", particleCount);
         // clear old particles
         particles.clear();
         weights.clear();

@@ -40,6 +40,7 @@ void odomCallback(const Odometry::ConstPtr &msg) {
 
 bool newPoint = false;
 PointStamped clicked;
+
 void clickedPointCallback(const PointStamped::ConstPtr &msg) {
     clicked = *msg;
     newPoint = true;
@@ -82,7 +83,7 @@ publishPoses(const ros::Publisher &posePub,
     currentPoses.header = Header();
     currentPoses.header.frame_id = "map";
     currentPoses.header.seq = seq;
-    ROS_INFO("Publishing %lu particles", currentPoses.poses.size());
+    ROS_DEBUG("Publishing %lu particles", currentPoses.poses.size());
     posesPub.publish(currentPoses);
 
 
@@ -138,7 +139,8 @@ publishPoses(const ros::Publisher &posePub,
     seq = seq + 1;
 
     tf::Transform transform;
-    transform.setOrigin(tf::Vector3(poseEstimate.pose.position.x, poseEstimate.pose.position.y, poseEstimate.pose.position.z));
+    transform.setOrigin(
+            tf::Vector3(poseEstimate.pose.position.x, poseEstimate.pose.position.y, poseEstimate.pose.position.z));
     transform.setRotation(q);
     br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "base_footprint"));
 }
@@ -203,12 +205,12 @@ int main(int argc, char **argv) {
     while (ros::ok()) {
         ros::spinOnce();
         if (MapHandler::currentMap.valid && newAction) {
-            ROS_INFO("New Action");
+            ROS_DEBUG("New Action");
             Action action = getAction();
-            ROS_INFO("Rotation: %f", action.rot);
-            ROS_INFO("Translation: %f", action.trans);
+            ROS_DEBUG("Rotation: %f", action.rot);
+            ROS_DEBUG("Translation: %f", action.trans);
 
-            ROS_INFO("Filter has %lu particles", pf.particles.size());
+            ROS_DEBUG("Filter has %lu particles", pf.particles.size());
             pf.actionUpdate(action);
             publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
 
