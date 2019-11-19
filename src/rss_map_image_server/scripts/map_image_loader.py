@@ -19,7 +19,7 @@ def handle_load_map(req):
     res = rospy.get_param("/map_image_params/resolution")
     name = req.name
     if name == "":
-        name = rospy.get_param("/map_image_loader/init_map_name")
+        name = rospy.get_param("~init_map_name")
         print "Load Initial Map: " + name
     else:
         print "Load Map: " + name
@@ -44,8 +44,9 @@ def load_map_server():
     global pub
     rospy.init_node('load_map_server')
     s = rospy.Service('load_map', LoadMap, handle_load_map)
-    pub = rospy.Publisher('map', OccupancyGrid, queue_size=2, latch=True)  # type: rospy.Publisher
-    loadInit = rospy.get_param("/map_image_loader/load_init")  # type: bool
+    mapTopic = rospy.get_param("~map_topic", default='map')
+    pub = rospy.Publisher(mapTopic, OccupancyGrid, queue_size=2, latch=True)  # type: rospy.Publisher
+    loadInit = rospy.get_param("~load_init")  # type: bool
     rospy.loginfo("Ready to load maps")
     if loadInit:
         rospy.loginfo("Loading initial map...")
