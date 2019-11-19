@@ -24,7 +24,7 @@ namespace rss {
         random_device rd{};
         default_random_engine gen{rd()};
         double a1{}, a2{}, a3{}, a4{};
-        double sigma_hit = 1.0;
+        double sigma_hit = 0.2;
         double lambda_short = 1.0;
         double z_hit, z_short, z_max, z_rand;
         double max_range = 4.0;

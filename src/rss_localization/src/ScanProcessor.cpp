@@ -10,7 +10,7 @@ namespace rss {
     Measurement ScanProcessor::getMeasurement() {
         vector<RangeAnglePair> ranges;
 //        ranges.reserve(rayCount);
-        for (unsigned int i = 0; i < rayCount; i += 1) {
+        for (unsigned int i = 0; i < rayCount; i += 36) {
             if (!useBadDataValue || currentScan.ranges[i] != badDataValue) {
                 if (currentScan.ranges[i] > currentScan.range_min
                     && currentScan.ranges[i] < currentScan.range_max) {

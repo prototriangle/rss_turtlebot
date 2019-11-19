@@ -56,7 +56,7 @@ bool shouldResample(const Action &action) {
     static const double trans_threshold = 0.0005;
     static const double rot_threshold = 0.0001;
 //    return true;
-    return (action.trans > trans_threshold && action.rot > rot_threshold);
+    return (action.trans > trans_threshold || abs(action.rot) > rot_threshold);
 }
 
 void
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
 
     tf::TransformBroadcaster br;
 
-    unsigned long particleCount = 128;
+    unsigned long particleCount = 64;
 
     LidarMeasurementModel measurementModel(0.94, 0.03, 0.01, 0.02);
     OdometryMotionModel motionModel;

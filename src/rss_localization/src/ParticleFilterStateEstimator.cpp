@@ -7,7 +7,7 @@ namespace rss {
 
     uniform_real_distribution<> ParticleFilterStateEstimator::uniformLinDist = uniform_real_distribution<>(0.0, 1.0);
     uniform_real_distribution<> ParticleFilterStateEstimator::uniformRotDist = uniform_real_distribution<>(-M_PI, M_PI);
-    normal_distribution<> ParticleFilterStateEstimator::normalDist = normal_distribution<>(0.0, 0.02);
+    normal_distribution<> ParticleFilterStateEstimator::normalDist = normal_distribution<>(0.0, 0.05);
 
     random_device ParticleFilterStateEstimator::rd;
     default_random_engine ParticleFilterStateEstimator::gen{ParticleFilterStateEstimator::rd()};
