@@ -45,7 +45,45 @@ namespace rss {
     }
 
     void ParticleFilterStateEstimator::particleUpdate() {
-        stochasticUniversalSampling();
+        ROS_INFO("Resampling");
+        double beta = 0;
+        unsigned long index = 0;
+        double maxWeight = 0;
+        for (const double &w : weights) {
+            if (w > maxWeight)
+                maxWeight = w;
+        }
+        vector<Particle> pTemp;
+        pTemp.reserve(particleCount);
+        for (unsigned long i = 0; i < particleCount; ++i) {
+            beta = beta + 2.0 * maxWeight * uniformLinDist(gen);
+            while (beta > weights[index]) {
+                beta = beta - weights[index];
+                ROS_INFO("BETA %f", beta);
+                index = (index + 1) % particleCount;
+            }
+            pTemp.emplace_back(particles[index]);
+        }
+        for (unsigned long i = 0; i < particleCount; ++i) {
+            particles[i] = pTemp[i];
+        }
+        /*
+         * def resampling(particles, w):
+                N = len(particles)
+                beta=0
+                index=0
+                w_max= max(w)
+                p_temp=[]
+                for i in range(N):
+                    beta= beta+2.0*w_max*np.random.rand()
+                    while beta>w[index]:
+                        beta = beta - w[index]
+                        index=(index + 1) % N
+                    selectedParticle = copy(particles[index])
+                    p_temp.append(selectedParticle) # if beta<w[index], this indexed particle is selected
+                return p_temp
+         */
+//        stochasticUniversalSampling();
     }
 
     void ParticleFilterStateEstimator::stochasticUniversalSampling() {
@@ -58,9 +96,10 @@ namespace rss {
             beta += increment;
             while (beta > weights[index]) {
                 beta = beta - weights[index];
+                ROS_INFO("BETA %f", beta);
                 index = (index + 1) % particleCount;
             };
-            tempParticles.push_back(particle);
+            tempParticles.push_back(particles[index]);
         }
         for (unsigned long i = 0; i < particleCount; ++i) {
             particles[i] = tempParticles[i];
