@@ -7,6 +7,7 @@ namespace rss {
 
     uniform_real_distribution<> ParticleFilterStateEstimator::uniformLinDist = uniform_real_distribution<>(0.0, 1.0);
     uniform_real_distribution<> ParticleFilterStateEstimator::uniformRotDist = uniform_real_distribution<>(-M_PI, M_PI);
+    normal_distribution<> ParticleFilterStateEstimator::normalDist = normal_distribution<>(0.0, 0.02);
 
     random_device ParticleFilterStateEstimator::rd;
     default_random_engine ParticleFilterStateEstimator::gen{ParticleFilterStateEstimator::rd()};
@@ -63,6 +64,7 @@ namespace rss {
     }
 
     void ParticleFilterStateEstimator::initialiseParticles(const Map &map) {
+        ROS_INFO("Initialising Particles (%lu)", particleCount);
         // clear old particles
         particles.clear();
         weights.clear();
@@ -70,23 +72,23 @@ namespace rss {
         particles.reserve(particleCount);
         weights.reserve(particleCount);
 
-        vector<unsigned long> freeSpaceIndices;
-        for (unsigned long i = 0; i < map.grid.data.size(); i++) {
-            if (map.grid.data[i] < 50) { // probably empty
-                freeSpaceIndices.push_back(i);
-            }
+        SimplePose init = {2.1, 0.65, 0.0};
+        for (unsigned long i = 0; i < particleCount; ++i) {
+            SimplePose offset = {normalDist(gen), normalDist(gen), 0};
+            SimplePose randPose = init + offset;
+            particles.emplace_back(measurementModel, motionModel, randPose);
         }
-        if (freeSpaceIndices.empty()) {
-            ROS_WARN("No free space on map!");
-        }
+        return;
+
+        vector<unsigned long> freeSpaceIndices(map.freeSpaceIndices);
         shuffle(freeSpaceIndices.begin(), freeSpaceIndices.end(), gen);
         unsigned long remainingEmptyCellCount = freeSpaceIndices.size();
         unsigned long next = 0;
-        for (Particle &particle : particles) {
-            MapPoint mp = cellIndexToMapPoint(next, map);
+        for (unsigned long i = 0; i < particleCount; ++i) {
+            MapPoint mp = cellIndexToMapPoint(freeSpaceIndices[next], map);
             auto w = gridToWorldCoords(mp, map);
             SimplePose randomPose{w.getX(), w.getY(), uniformRotDist(gen)};
-            particle = Particle(measurementModel, motionModel, randomPose);
+            particles.emplace_back(measurementModel, motionModel, randomPose);
             next = ((next + 1) % freeSpaceIndices.size());
             --remainingEmptyCellCount;
             if (remainingEmptyCellCount == 0) {

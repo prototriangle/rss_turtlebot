@@ -34,6 +34,7 @@ namespace rss {
         static default_random_engine gen;
         static uniform_real_distribution<> uniformLinDist;
         static uniform_real_distribution<> uniformRotDist;
+        static normal_distribution<> normalDist;
 
         MeasurementModel *measurementModel;
         MotionModel *motionModel;
