@@ -448,14 +448,6 @@ namespace rss {
         unsigned long y;
     };
 
-    static geometry_msgs::Point normalisedToWorldCoord(const geometry_msgs::Point &p) {
-        return p;
-    }
-
-    static geometry_msgs::Point worldToNormalisedCoord(const geometry_msgs::Point &p) {
-        return p;
-    }
-
     static MapPoint cellIndexToMapPoint(const unsigned long &i, const Map &map) {
         return {i % map.grid.info.width, i / map.grid.info.height};
     }
