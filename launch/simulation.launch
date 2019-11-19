@@ -77,4 +77,6 @@
     <param name="load_init" value="True"/>
   </node>
 
+  <!-- Localization -->
+  <node name="localization" pkg="rss_localization" type="rss_localization" output="screen" />
 </launch>
