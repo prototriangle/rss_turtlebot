@@ -212,15 +212,15 @@ int main(int argc, char **argv) {
 
             ROS_DEBUG("Filter has %lu particles", pf.particles.size());
             pf.actionUpdate(action);
-            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
+//            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
 
             pf.measurementUpdate(scanProcessor.getMeasurement(), MapHandler::currentMap);
-            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
+//            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
 
             if (shouldResample(action)) {
                 pf.particleUpdate();
-                publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
             }
+            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
 
         }
         loopRate.sleep();
