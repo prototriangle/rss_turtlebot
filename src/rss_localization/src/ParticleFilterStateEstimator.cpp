@@ -46,27 +46,27 @@ namespace rss {
 
     void ParticleFilterStateEstimator::particleUpdate() {
         ROS_DEBUG("Resampling");
-//        double beta = 0;
-//        unsigned long index = 0;
-//        double maxWeight = 0;
-//        for (const double &w : weights) {
-//            if (w > maxWeight)
-//                maxWeight = w;
-//        }
-//        vector<Particle> pTemp;
-//        pTemp.reserve(particleCount);
-//        for (unsigned long i = 0; i < particleCount; ++i) {
-//            beta = beta + 2.0 * maxWeight * uniformLinDist(gen);
-//            while (beta > weights[index]) {
-//                beta = beta - weights[index];
-//                ROS_INFO("BETA %f", beta);
-//                index = (index + 1) % particleCount;
-//            }
-//            pTemp.emplace_back(particles[index]);
-//        }
-//        for (unsigned long i = 0; i < particleCount; ++i) {
-//            particles[i] = pTemp[i];
-//        }
+        double beta = 0;
+        unsigned long index = 0;
+        double maxWeight = 0;
+        for (const double &w : weights) {
+            if (w > maxWeight)
+                maxWeight = w;
+        }
+        vector<Particle> pTemp;
+        pTemp.reserve(particleCount);
+        for (unsigned long i = 0; i < particleCount; ++i) {
+            beta = beta + 2.0 * maxWeight * uniformLinDist(gen);
+            while (beta > weights[index]) {
+                beta = beta - weights[index];
+                ROS_DEBUG("BETA %f", beta);
+                index = (index + 1) % particleCount;
+            }
+            pTemp.emplace_back(particles[index]);
+        }
+        for (unsigned long i = 0; i < particleCount; ++i) {
+            particles[i] = pTemp[i];
+        }
         /*
          * def resampling(particles, w):
                 N = len(particles)
@@ -83,7 +83,7 @@ namespace rss {
                     p_temp.append(selectedParticle) # if beta<w[index], this indexed particle is selected
                 return p_temp
          */
-        stochasticUniversalSampling();
+//        stochasticUniversalSampling();
     }
 
     void ParticleFilterStateEstimator::stochasticUniversalSampling() {
