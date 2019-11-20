@@ -10,10 +10,12 @@ namespace rss {
         static double rotThresh = 0.015;
         double s1 = action.trans < transThresh ? 0 : normalDistribution1(gen);
         double s2 = abs(action.rot) < rotThresh ? 0 : normalDistribution2(gen);
+        double theta = currentPose.theta + action.rot + s2;
+        double trans = action.trans + s1;
         return {
-                currentPose.x + (action.trans + s1) * cos(currentPose.theta + action.rot),
-                currentPose.y + (action.trans + s1) * sin(currentPose.theta + action.rot),
-                currentPose.theta + action.rot + s2
+                currentPose.x + trans * cos(theta),
+                currentPose.y + trans * sin(theta),
+                theta
         };
 
     }
