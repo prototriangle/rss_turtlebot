@@ -3,17 +3,15 @@
 
 #include "std_msgs/String.h"
 #include "std_msgs/Header.h"
+#include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Transform.h"
-#include "nav_msgs/OccupancyGrid.h"
-#include "tf2/utils.h"
-#include "tf2/LinearMath/Quaternion.h"
-#include "tf2_ros/transform_broadcaster.h"
+#include "geometry_msgs/Twist.h"
+#include "tf/tf.h"
 #include <cmath>
 #include <vector>
 #include <random>
-#include <geometry_msgs/Twist.h>
 
 using namespace std;
 using namespace std_msgs;
@@ -22,11 +20,11 @@ using namespace nav_msgs;
 namespace rss {
 
 
-    inline tf2::Vector3 vectorFromPoint(const geometry_msgs::Point &p) {
+    inline tf::Vector3 vectorFromPoint(const geometry_msgs::Point &p) {
         return {p.x, p.y, p.z};
     }
 
-    inline geometry_msgs::Point pointFromVector(const tf2::Vector3 &v) {
+    inline geometry_msgs::Point pointFromVector(const tf::Vector3 &v) {
         geometry_msgs::Point p;
         p.x = v.getX();
         p.y = v.getY();
@@ -410,27 +408,20 @@ namespace rss {
         }
 
         Action(const geometry_msgs::Pose &pose) {
-            rot = tf2::getYaw(pose.orientation);
-            tf2::Vector3 v;
-            tf2::fromMsg(pose.position, v);
+            rot = tf::getYaw(pose.orientation);
+            tf::Vector3 v;
+            tf::pointMsgToTF(pose.position, v);
             trans = v.length();
         }
 
         Action(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2) {
-            rot = normalisedAngle(tf2::getYaw(pose2.orientation) - tf2::getYaw(pose1.orientation));
-            trans = tf2::tf2Distance(vectorFromPoint(pose1.position), vectorFromPoint(pose2.position));
+            rot = normalisedAngle(tf::getYaw(pose2.orientation) - tf::getYaw(pose1.orientation));
+            trans = tf::tfDistance(vectorFromPoint(pose1.position), vectorFromPoint(pose2.position));
         }
 
         Action(const geometry_msgs::Twist &twist, const double &dt) {
             rot = twist.angular.z * dt;
             trans = twist.linear.x * dt;
-        }
-
-        Action(const geometry_msgs::Transform &t) {
-            rot = tf2::getYaw(t.rotation);
-            tf2::Vector3 v;
-            tf2::fromMsg(t.translation, v);
-            trans = v.length();
         }
 
         Action() = default;
@@ -453,9 +444,9 @@ namespace rss {
     }
 
     static MapPoint worldToGridCoords(const double &x, const double &y, const Map &map) {
-        tf2::Quaternion orientation;
-        tf2::fromMsg(map.grid.info.origin.orientation, orientation);
-        double theta = tf2::getYaw(orientation);
+        tf::Quaternion orientation;
+        tf::quaternionMsgToTF(map.grid.info.origin.orientation, orientation);
+        double theta = tf::getYaw(orientation);
         double ct = cos(theta);
         double st = sin(theta);
         double xp = map.grid.info.origin.position.x + x * ct - y * st;
@@ -464,10 +455,10 @@ namespace rss {
                 (unsigned int) floor(abs(yp / map.grid.info.resolution))};
     }
 
-    static tf2::Vector3 gridToWorldCoords(const MapPoint &point, const Map &map) {
-        tf2::Quaternion orientation;
-        tf2::fromMsg(map.grid.info.origin.orientation, orientation);
-        double theta = tf2::getYaw(orientation);
+    static tf::Vector3 gridToWorldCoords(const MapPoint &point, const Map &map) {
+        tf::Quaternion orientation;
+        tf::quaternionMsgToTF(map.grid.info.origin.orientation, orientation);
+        double theta = tf::getYaw(orientation);
         double x = double(point.x) * map.grid.info.resolution;
         double y = double(point.y) * map.grid.info.resolution;
         double ct = cos(theta);
@@ -478,9 +469,9 @@ namespace rss {
     }
 
     static double distanceOnFromMap(const MapPoint &point1, const MapPoint &point2, const Map &map) {
-        tf2::Vector3 p1 = gridToWorldCoords(point1, map);
-        tf2::Vector3 p2 = gridToWorldCoords(point2, map);
-        return tf2::tf2Distance(p1, p2);
+        tf::Vector3 p1 = gridToWorldCoords(point1, map);
+        tf::Vector3 p2 = gridToWorldCoords(point2, map);
+        return tf::tfDistance(p1, p2);
     }
     //</editor-fold>
 

@@ -1,8 +1,8 @@
 #ifndef RSS_LOCALIZATION_SCANPROCESSOR_H
 #define RSS_LOCALIZATION_SCANPROCESSOR_H
 
-#include "util.h"
 #include "sensor_msgs/LaserScan.h"
+#include "util.h"
 #include <vector>
 
 using namespace sensor_msgs;

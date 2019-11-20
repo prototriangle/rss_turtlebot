@@ -12,7 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
         rospy
         std_msgs
         nav_msgs
-        tf2_geometry_msgs
+        geometry_msgs
+        sensor_msgs
+        visualization_msgs
         tf
         )
 
@@ -108,7 +110,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES rss_localization
-        CATKIN_DEPENDS roscpp rospy std_msgs nav_msgs tf2_geometry_msgs
+        CATKIN_DEPENDS roscpp rospy std_msgs nav_msgs geometry_msgs sensor_msgs visualization_msgs tf
         #  DEPENDS system_lib
 )
 

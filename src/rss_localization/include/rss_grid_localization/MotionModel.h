@@ -1,12 +1,12 @@
 #ifndef RSS_LOCALIZATION_MOTIONMODEL_H
 #define RSS_LOCALIZATION_MOTIONMODEL_H
 
-#include "util.h"
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "sensor_msgs/LaserScan.h"
-#include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/Pose.h"
+#include "nav_msgs/OccupancyGrid.h"
+#include "util.h"
 #include <cmath>
 #include <vector>
 #include <random>

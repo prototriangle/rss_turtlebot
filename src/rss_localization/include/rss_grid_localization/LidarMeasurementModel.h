@@ -1,14 +1,14 @@
 #ifndef RSS_LOCALIZATION_LIDARMEASUREMENTMODEL_H
 #define RSS_LOCALIZATION_LIDARMEASUREMENTMODEL_H
 
-#include "MeasurementModel.h"
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "sensor_msgs/LaserScan.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/Pose.h"
-
 #include "util.h"
+#include "MeasurementModel.h"
+
 #include <cmath>
 #include <vector>
 #include <random>
