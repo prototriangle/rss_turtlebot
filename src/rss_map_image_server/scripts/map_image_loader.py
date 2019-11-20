@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from geometry_msgs.msg import Point, Quaternion
 from nav_msgs.msg import OccupancyGrid, MapMetaData
 from rss_map_image_server.srv import LoadMap, LoadMapResponse, LoadMapRequest
 import rospy
@@ -31,6 +32,7 @@ def handle_load_map(req):
         map = OccupancyGrid()
         map.data = image.flatten().tolist()
         map.info = MapMetaData(width=width, height=height, resolution=res)
+        map.info.origin.orientation.w = 1.0
         map.header.frame_id = map_frame
         map.header.seq = seq
         seq = seq + 1
