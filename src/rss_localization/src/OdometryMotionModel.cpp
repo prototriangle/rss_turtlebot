@@ -6,10 +6,11 @@ using namespace std;
 
 namespace rss {
     SimplePose OdometryMotionModel::run(SimplePose currentPose, const Action &action) {
-        static double transThresh = 0.005;
-        static double rotThresh = 0.015;
-        double s1 = action.trans < transThresh ? 0 : normalDistribution1(gen);
-        double s2 = abs(action.rot) < rotThresh ? 0 : normalDistribution2(gen);
+        static double transThresh = 0.001;
+        static double rotThresh = 0.00;
+        bool pr = abs(action.trans) < transThresh || abs(action.rot) < rotThresh;
+        double s1 = pr ? 0 : normalDistribution1(gen);
+        double s2 = pr ? 0 : normalDistribution2(gen);
         double theta = currentPose.theta + action.rot + s2;
         double trans = action.trans + s1;
         return {
