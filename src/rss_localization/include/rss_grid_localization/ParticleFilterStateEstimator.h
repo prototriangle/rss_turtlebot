@@ -36,10 +36,10 @@ namespace rss {
         static uniform_real_distribution<> uniformRotDist;
         static normal_distribution<> normalDist;
 
-        MeasurementModel *measurementModel;
-        MotionModel *motionModel;
 
     public:
+        MeasurementModel *measurementModel;
+        MotionModel *motionModel;
         unsigned long particleCount;
         vector<Particle> particles;
 

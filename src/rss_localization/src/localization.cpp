@@ -43,6 +43,15 @@ void clickedPointCallback(const PointStamped::ConstPtr &msg) {
     newPoint = true;
 }
 
+bool newPose = false;
+Pose rvizPose;
+double rvizPoseVal;
+
+void rvizPoseCallback(const PoseWithCovarianceStamped::ConstPtr &msg) {
+    rvizPose = msg->pose.pose;
+    newPose = true;
+}
+
 Action getAction() {
     newAction = false;
     ros::Duration stamp = lastReceivedOdom.header.stamp - lastUsedOdom.header.stamp;
@@ -63,7 +72,8 @@ publishPoses(const ros::Publisher &posePub,
              const ros::Publisher &weightsPub,
              const ParticleFilterStateEstimator &pf,
              unsigned long &seq,
-             tf::TransformBroadcaster &br
+             tf::TransformBroadcaster &br,
+             const Measurement &z
 ) {
     PoseArray currentPoses;
     currentPoses.poses.reserve(pf.particles.size());
@@ -95,16 +105,17 @@ publishPoses(const ros::Publisher &posePub,
         }
     }
     currentWeights.markers.reserve(pf.particles.size());
-    for (unsigned long i = 0; i < pf.particles.size(); ++i) {
+    unsigned long i;
+    for (i = 0; i < pf.particles.size(); ++i) {
         Marker marker;
         marker.header = currentPoses.header;
         marker.id = i;
         marker.pose = currentPoses.poses[i];
         marker.type = Marker::SPHERE;
         geometry_msgs::Vector3 scale;
-        scale.x = 0.05;
-        scale.y = 0.05;
-        scale.z = 0.05;
+        scale.x = 0.025;
+        scale.y = 0.025;
+        scale.z = 0.025;
         marker.scale = scale;
         ColorRGBA c;
         c.r = pf.weights[i] / maxWeight;
@@ -114,7 +125,36 @@ publishPoses(const ros::Publisher &posePub,
         marker.color = c;
         currentWeights.markers.push_back(marker);
     }
-    weightsPub.publish(currentWeights);
+    if (newPose) {
+//        ROS_INFO("Publishing RVIZ POSE!");
+        Marker marker;
+        marker.header = currentPoses.header;
+        marker.id = i;
+        marker.pose = rvizPose;
+        marker.type = Marker::ARROW;
+        geometry_msgs::Vector3 scale;
+        scale.x = 0.2;
+        scale.y = 0.05;
+        scale.z = 0.05;
+        marker.scale = scale;
+        ColorRGBA c;
+        c.r = 1.0;
+        c.g = 0.7;
+        c.b = 0.0;
+        c.a = 1;
+        marker.color = c;
+        currentWeights.markers.push_back(marker);
+
+        marker.id = ++i;
+        marker.type = Marker::TEXT_VIEW_FACING;
+        double w = pf.measurementModel->run(z, marker.pose, MapHandler::currentMap);
+        marker.text = to_string(w);
+        marker.scale.z = 0.3;
+        currentWeights.markers.push_back(marker);
+
+
+    }
+
 
 
     geometry_msgs::PoseStamped poseEstimate;
@@ -131,7 +171,34 @@ publishPoses(const ros::Publisher &posePub,
     poseEstimate.pose.position.z = 0;
     tf::quaternionTFToMsg(q, poseEstimate.pose.orientation);
 
+    Marker marker;
+    marker.header = currentPoses.header;
+    marker.type = Marker::LINE_LIST;
+    marker.pose = poseEstimate.pose;
+    marker.scale.x = 0.01;
+    marker.id = ++i;
+    marker.color.a = 1.0;
+    marker.color.r = 0.1;
+    marker.color.g = 0.2;
+    marker.color.b = 0.8;
+    marker.points.clear();
+    Point p0;
+    p0.x = 0;
+    p0.y = 0;
+    for (const auto &z_k : z.data) {
+        marker.points.push_back(p0);
+        Point p1;
+        double theta = z_k.angle;
+        double hitX = z_k.range * cos(theta);
+        double hitY = z_k.range * sin(theta);
+        p1.x = hitX;
+        p1.y = hitY;
+        marker.points.push_back(p1);
+    }
+    currentWeights.markers.push_back(marker);
+
     posePub.publish(poseEstimate);
+    weightsPub.publish(currentWeights);
 
     seq = seq + 1;
 
@@ -154,6 +221,7 @@ int main(int argc, char **argv) {
     ros::Publisher posePub = n.advertise<PoseStamped>("pose_estimate", 2);
     ros::Publisher weightsPub = n.advertise<MarkerArray>("weights", 2);
     ros::Subscriber clickedSub = n.subscribe("clicked_point", 2, clickedPointCallback);
+    ros::Subscriber rvizPoseSub = n.subscribe("rviz_pose", 2, rvizPoseCallback);
     ros::Publisher debugMarkers = n.advertise<PointStamped>("debug_markers", 2);
     ros::Rate loopRate(20);
 
@@ -197,7 +265,7 @@ int main(int argc, char **argv) {
 //    return 0;
 
     pf.initialiseParticles(MapHandler::currentMap);
-    publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
+    publishPoses(posePub, posesPub, weightsPub, pf, seq, br, Measurement());
 
     while (ros::ok()) {
         ros::spinOnce();
@@ -209,15 +277,15 @@ int main(int argc, char **argv) {
 
             ROS_DEBUG("Filter has %lu particles", pf.particles.size());
             pf.actionUpdate(action);
-//            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
 
-            pf.measurementUpdate(scanProcessor.getMeasurement(), MapHandler::currentMap);
+            auto z = scanProcessor.getMeasurement();
+            pf.measurementUpdate(z, MapHandler::currentMap);
 //            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
 
             if (shouldResample(action)) {
                 pf.particleUpdate();
             }
-            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
+            publishPoses(posePub, posesPub, weightsPub, pf, seq, br, z);
 
         }
         loopRate.sleep();
