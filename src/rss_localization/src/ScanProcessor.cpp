@@ -33,7 +33,7 @@ namespace rss {
         }
         double degIncr = 360.0 / this->rayCount;
         for (double currAngle = 0; currAngle < 360; currAngle += degIncr)
-            angles.push_back(currAngle);
+            angles.push_back(deg2rad(currAngle));
     }
 
     ScanProcessor::ScanProcessor(unsigned int rayCount, float badDataValue) : ScanProcessor(rayCount) {
