@@ -6,7 +6,6 @@ namespace rss {
 
     double LidarMeasurementModel::run(const Measurement &z, const SimplePose &pose, const Map &map) {
         double q = 1.0;
-//        MapPoint mapPoint = worldToGridCoords(pose.x, pose.y, map);
         for (const RangeAnglePair &z_k : z.data) {
             if (z_k.range < max_range) {
                 double theta = z_k.angle + pose.theta;
@@ -16,16 +15,16 @@ namespace rss {
                 double distance = likelihoodLookup(hitPoint, map);
                 double n = distance;
                 double m = p_rand(z_k.range);
-                double nlprob = negLogProb(0.95 * n + 0.05 * m);
-                q += nlprob;
+//                double nlprob = negLogProb(0.95 * n + 0.05 * m);
+                q *= 0.95 * n + 0.05 * m;
             }
         }
 //        ROS_INFO("q=%f", q);
-        return q;
-/*
+        return q; /*
+
         auto mp = worldToGridCoords(pose.x, pose.y, map);
         unsigned long hi = map.grid.data.size();
-        unsigned long i = mapPoint.x + mapPoint.y * map.grid.info.width;
+        unsigned long i = mp.x + mp.y * map.grid.info.width;
         bool oob = hi < i;
         if (oob) {
             i = hi;
@@ -47,7 +46,7 @@ namespace rss {
             q *= p;
         }
         return q;
-        */
+*/
     }
 
     double
