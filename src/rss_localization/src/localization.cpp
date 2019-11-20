@@ -80,7 +80,6 @@ publishPoses(const ros::Publisher &posePub,
     for (const auto &p : pf.particles) {
         tf::Quaternion q;
         q.setRPY(0, 0, p.pose.theta);
-//        q = q.normalize();
         Pose newPose;
         tf::quaternionTFToMsg(q, newPose.orientation);
         newPose.position.x = p.pose.x;
