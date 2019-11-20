@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
     ros::Publisher weightsPub = n.advertise<MarkerArray>("weights", 2);
     ros::Subscriber clickedSub = n.subscribe("clicked_point", 2, clickedPointCallback);
     ros::Publisher debugMarkers = n.advertise<PointStamped>("debug_markers", 2);
-    ros::Rate loopRate(5);
+    ros::Rate loopRate(20);
 
     tf::TransformBroadcaster br;
 
