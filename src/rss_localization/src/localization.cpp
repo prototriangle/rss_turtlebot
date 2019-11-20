@@ -282,7 +282,7 @@ int main(int argc, char **argv) {
             pf.measurementUpdate(z, MapHandler::currentMap);
 //            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
 
-            if (rand() < RAND_MAX / 10.0 && shouldResample(action)) {
+            if (shouldResample(action)) {
                 pf.particleUpdate();
             }
             publishPoses(posePub, posesPub, weightsPub, pf, seq, br, z);
