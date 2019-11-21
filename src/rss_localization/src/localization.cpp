@@ -156,8 +156,7 @@ publishPoses(const ros::Publisher &posePub,
         marker.text = to_string(w);
         marker.scale.z = 0.3;
         currentWeights.markers.push_back(marker);
-
-
+        newPose = false;
     }
 
 
