@@ -187,6 +187,11 @@ publishPoses(const ros::Publisher &posePub,
     marker.color.g = 0.2;
     marker.color.b = 0.8;
     marker.points.clear();
+    tf::Quaternion laserRot;
+    laserRot.setRPY(0, 0, z.laserPose.theta);
+    tf::quaternionTFToMsg(laserRot, marker.pose.orientation);
+    marker.pose.position.x = z.laserPose.x;
+    marker.pose.position.y = z.laserPose.y;
     Point p0;
     p0.x = 0;
     p0.y = 0;

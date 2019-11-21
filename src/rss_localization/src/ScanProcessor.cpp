@@ -20,7 +20,7 @@ namespace rss {
                 }
             }
         }
-        return {currentScan.header, ranges};
+        return {currentScan.header, ranges, laserCenter};
     }
 
     void ScanProcessor::recCallback(const LaserScan::ConstPtr &msg) {

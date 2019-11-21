@@ -10,9 +10,9 @@ namespace rss {
         if (lf) {
             for (const RangeAnglePair &z_k : z.data) {
                 if (z_k.range < max_range) {
-                    double theta = z_k.angle + pose.theta;
-                    double hitX = z_k.range * cos(theta);
-                    double hitY = z_k.range * sin(theta);
+                    double theta = z_k.angle + pose.theta + z.laserPose.theta;
+                    double hitX = z_k.range * cos(theta) + z.laserPose.x;
+                    double hitY = z_k.range * sin(theta) + z.laserPose.y;
                     MapPoint hitPoint = worldToGridCoords(pose.x + hitX, pose.y + hitY, map);
                     double distance = likelihoodLookup(hitPoint, map);
                     double n = distance;

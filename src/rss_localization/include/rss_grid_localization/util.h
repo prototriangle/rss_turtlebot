@@ -355,15 +355,9 @@ namespace rss {
 
     //<editor-fold desc="Utility">
 
-
     struct RangeAnglePair {
         double range;
         double angle;
-    };
-
-    struct Measurement {
-        Header header;
-        vector<RangeAnglePair> data;
     };
 
     struct WeightedParticle {
@@ -402,6 +396,12 @@ namespace rss {
             y += pose.y;
             theta += pose.theta;
         }
+    };
+
+    struct Measurement {
+        Header header;
+        vector<RangeAnglePair> data;
+        SimplePose laserPose;
     };
 
     struct Action {
