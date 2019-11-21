@@ -218,7 +218,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "localization");
     ros::NodeHandle n("~");
     ROS_INFO("STARTING LOCALIZATION...");
-    auto scanProcessor = ScanProcessor(360);
+    ScanProcessor scanProcessor(360);
     ros::Subscriber scanSub = n.subscribe("/scan", 20, &ScanProcessor::recCallback, &scanProcessor);
     ros::Subscriber initialMapSub = n.subscribe("/lf", 20, MapHandler::recCallback);
     ros::Subscriber odomSub = n.subscribe("/odom", 20, odomCallback);

@@ -1,5 +1,7 @@
 #include "rss_grid_localization/ScanProcessor.h"
 #include "rss_grid_localization/util.h"
+#include "tf/tf.h"
+#include "tf/exceptions.h"
 #include "sensor_msgs/LaserScan.h"
 
 using namespace sensor_msgs;
@@ -26,6 +28,23 @@ namespace rss {
     }
 
     ScanProcessor::ScanProcessor(unsigned int rayCount) : rayCount(rayCount) {
+        tf::StampedTransform transform;
+        try {
+            listener.lookupTransform(
+                    "/base_scan",
+                    "/base_footprint",
+                    ros::Time(0),
+                    transform);
+            laserCenter = transform;
+            ROS_INFO("Laser Scanner is offset from /base_footprint by (x:%f,y:%f,θ=%f)",
+                     laserCenter.x,
+                     laserCenter.y,
+                     laserCenter.theta);
+        }
+        catch (tf::TransformException &ex) {
+            ROS_ERROR("%s", ex.what());
+            ros::Duration(1.0).sleep();
+        }
         angles.reserve(rayCount);
         if (rayCount == 0) {
             // No rays default to 360 rays

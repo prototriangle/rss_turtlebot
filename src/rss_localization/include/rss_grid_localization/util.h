@@ -379,10 +379,15 @@ namespace rss {
             x = pose.position.x;
             y = pose.position.y;
         }
+        SimplePose(const tf::StampedTransform &t) {
+            x = t.getOrigin().getX();
+            y = t.getOrigin().getY();
+            theta = tf::getYaw(t.getRotation());
+        }
 
-        double x;
-        double y;
-        double theta;
+        double x{};
+        double y{};
+        double theta{};
 
         SimplePose operator+(const SimplePose &pose) {
             return {x + pose.x, y + pose.y, theta + pose.theta};
