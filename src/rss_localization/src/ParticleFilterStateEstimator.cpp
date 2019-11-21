@@ -46,6 +46,8 @@ namespace rss {
 
     void ParticleFilterStateEstimator::particleUpdate() {
         ROS_DEBUG("Resampling");
+        stochasticUniversalSampling();
+        return;
         double beta = 0;
         unsigned long index = 0;
         double maxWeight = 0;
@@ -83,7 +85,6 @@ namespace rss {
                     p_temp.append(selectedParticle) # if beta<w[index], this indexed particle is selected
                 return p_temp
          */
-//        stochasticUniversalSampling();
     }
 
     void ParticleFilterStateEstimator::stochasticUniversalSampling() {
