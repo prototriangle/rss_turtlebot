@@ -10,6 +10,7 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <std_msgs/Int16.h>
 #include <tf/transform_listener.h>
 
 #include <string>
@@ -44,6 +45,7 @@ private:
     ros::Subscriber path_sub_;
     ros::Publisher control_pub_;
     ros::Publisher next_point_pub_;
+    ros::Publisher status_pub_;
     tf::TransformListener listener;
 
     std::string path_frame_;

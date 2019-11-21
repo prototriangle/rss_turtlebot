@@ -3,10 +3,6 @@ arm_status_topic: /arm_controller/status
 gripper_status_topic: /gripper/status
 
 action_list:
-  - move: [1.0, 0.2]
-  - arm:  [0.2, 0.1, 0.4]
-  - grip: [TODO]
-  - arm:  [0.0, 0.0, 0.0]
-  - move: [1.5, 0.2]
-  - move: [1.0, 1.2]
-  - arm:  [0.2, 0.1, 0.4]
+  - move: [3.5, 0.6]
+  - move: [3.0, 4.0]
+  - move: [1.2, 3.0]
