@@ -5,48 +5,50 @@
 namespace rss {
 
     double LidarMeasurementModel::run(const Measurement &z, const SimplePose &pose, const Map &map) {
+        static bool lf = true;
         double q = 1.0;
-        for (const RangeAnglePair &z_k : z.data) {
-            if (z_k.range < max_range) {
-                double theta = z_k.angle + pose.theta;
-                double hitX = z_k.range * cos(theta);
-                double hitY = z_k.range * sin(theta);
-                MapPoint hitPoint = worldToGridCoords(pose.x + hitX, pose.y + hitY, map);
-                double distance = likelihoodLookup(hitPoint, map);
-                double n = distance;
-                double m = p_rand(z_k.range);
-//                double nlprob = negLogProb(0.95 * n + 0.05 * m);
-                q *= 0.95 * n + 0.05 * m;
+        if (lf) {
+            for (const RangeAnglePair &z_k : z.data) {
+                if (z_k.range < max_range) {
+                    double theta = z_k.angle + pose.theta;
+                    double hitX = z_k.range * cos(theta);
+                    double hitY = z_k.range * sin(theta);
+                    MapPoint hitPoint = worldToGridCoords(pose.x + hitX, pose.y + hitY, map);
+                    double distance = likelihoodLookup(hitPoint, map);
+                    double n = distance;
+                    double m = p_rand(z_k.range);
+                    double nlprob = negLogProb(0.95 * n + 0.05 * m);
+                    q += nlprob;
+                }
             }
-        }
 //        ROS_INFO("q=%f", q);
-        return q; /*
-
-        auto mp = worldToGridCoords(pose.x, pose.y, map);
-        unsigned long hi = map.grid.data.size();
-        unsigned long i = mp.x + mp.y * map.grid.info.width;
-        bool oob = hi < i;
-        if (oob) {
-            i = hi;
+            return q;
+        } else {
+            auto mp = worldToGridCoords(pose.x, pose.y, map);
+            unsigned long hi = map.grid.data.size();
+            unsigned long i = mp.x + mp.y * map.grid.info.width;
+            bool oob = hi < i;
+            if (oob) {
+                i = hi;
+            }
+            if (oob || map.grid.data[i] > 50) {//occupied
+                return 0.001;
+            }
+            for (RangeAnglePair z_k : z.data) {
+                double pred = compute_noise_free_range(z_k.angle, pose, map);
+                auto pHit = p_hit(z_k.range, pred);
+                auto pShort = p_short(z_k.range, pred);
+                auto pMax = p_max(z_k.range);
+                auto pRand = p_rand(z_k.range);
+                double p =
+                        z_hit * pHit
+                        + z_short * pShort
+                        + z_max * pMax
+                        + z_rand * pRand;
+                q *= p;
+            }
+            return q;
         }
-        if (oob || map.grid.data[i] > 50) {//occupied
-            return 0.001;
-        }
-        for (RangeAnglePair z_k : z.data) {
-            double pred = compute_noise_free_range(z_k.angle, pose, map);
-            auto pHit = p_hit(z_k.range, pred);
-            auto pShort = p_short(z_k.range, pred);
-            auto pMax = p_max(z_k.range);
-            auto pRand = p_rand(z_k.range);
-            double p =
-                    z_hit * pHit
-                    + z_short * pShort
-                    + z_max * pMax
-                    + z_rand * pRand;
-            q *= p;
-        }
-        return q;
-*/
     }
 
     double
