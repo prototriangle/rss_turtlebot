@@ -143,7 +143,7 @@ namespace rss {
             unsigned long i = point.x + point.y * map.grid.info.width;
             return (100.0 - (double) map.grid.data[i]) / 100.0;
         } else {
-            return 0.0;
+            return 1.0;
         }
     }
 
