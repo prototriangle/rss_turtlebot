@@ -295,6 +295,10 @@ int main(int argc, char **argv) {
 
     while (ros::ok()) {
         ros::spinOnce();
+        if (newPose) {
+            pf.initialiseParticles(MapHandler::currentMap, SimplePose(rvizPose));
+            newPose = false;
+        }
         if (MapHandler::currentMap.valid && newAction) {
             ROS_DEBUG("New Action");
             Action action = getAction();
