@@ -1,0 +1,5 @@
+<launch>
+    <node name="rss_state_machine" pkg="rss_state_machine" type="rss_state_machine.py" output="screen">
+        <rosparam command="load" file="$(find rss_state_machine)/config/rss_state_machine.yaml"/>
+    </node>
+</launch>
