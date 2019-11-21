@@ -172,7 +172,7 @@ publishPoses(const ros::Publisher &posePub,
     poseEstimate.header.frame_id = "map";
     poseEstimate.pose.pose.position.x = pf.particles[maxWeightIndex].pose.x;
     poseEstimate.pose.pose.position.y = pf.particles[maxWeightIndex].pose.y;
-    poseEstimate.pose..poseposition.z = 0;
+    poseEstimate.pose.pose.position.z = 0;
     tf::quaternionTFToMsg(q, poseEstimate.pose.pose.orientation);
 
     Marker marker;
