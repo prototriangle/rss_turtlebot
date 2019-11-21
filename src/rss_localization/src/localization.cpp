@@ -161,7 +161,7 @@ publishPoses(const ros::Publisher &posePub,
     }
 
 
-    geometry_msgs::PoseStamped poseEstimate;
+    Odometry poseEstimate;
     tf::Quaternion q;
 //    q.setW(1.0);
     q.setRPY(0, 0, pf.particles[maxWeightIndex].pose.theta);
@@ -170,15 +170,15 @@ publishPoses(const ros::Publisher &posePub,
     poseEstimate.header = Header();
     poseEstimate.header.seq = seq;
     poseEstimate.header.frame_id = "map";
-    poseEstimate.pose.position.x = pf.particles[maxWeightIndex].pose.x;
-    poseEstimate.pose.position.y = pf.particles[maxWeightIndex].pose.y;
-    poseEstimate.pose.position.z = 0;
-    tf::quaternionTFToMsg(q, poseEstimate.pose.orientation);
+    poseEstimate.pose.pose.position.x = pf.particles[maxWeightIndex].pose.x;
+    poseEstimate.pose.pose.position.y = pf.particles[maxWeightIndex].pose.y;
+    poseEstimate.pose..poseposition.z = 0;
+    tf::quaternionTFToMsg(q, poseEstimate.pose.pose.orientation);
 
     Marker marker;
     marker.header = currentPoses.header;
     marker.type = Marker::LINE_LIST;
-    marker.pose = poseEstimate.pose;
+    marker.pose = poseEstimate.pose.pose;
     marker.scale.x = 0.01;
     marker.id = ++i;
     marker.ns = "Ranges";
@@ -209,7 +209,10 @@ publishPoses(const ros::Publisher &posePub,
 
     tf::Transform transform;
     transform.setOrigin(
-            tf::Vector3(poseEstimate.pose.position.x, poseEstimate.pose.position.y, poseEstimate.pose.position.z));
+            tf::Vector3(
+                    poseEstimate.pose.pose.position.x,
+                    poseEstimate.pose.pose.position.y,
+                    poseEstimate.pose.pose.position.z));
     transform.setRotation(q);
     br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "base_footprint"));
 }
@@ -223,7 +226,7 @@ int main(int argc, char **argv) {
     ros::Subscriber initialMapSub = n.subscribe("/lf", 20, MapHandler::recCallback);
     ros::Subscriber odomSub = n.subscribe("/odom", 20, odomCallback);
     ros::Publisher posesPub = n.advertise<PoseArray>("/particles", 2);
-    ros::Publisher posePub = n.advertise<PoseStamped>("/pose_estimate", 2);
+    ros::Publisher posePub = n.advertise<Odometry>("/pose_estimate", 2);
     ros::Publisher weightsPub = n.advertise<MarkerArray>("/weights", 2);
     ros::Subscriber clickedSub = n.subscribe("/clicked_point", 2, clickedPointCallback);
     ros::Subscriber rvizPoseSub = n.subscribe("/rviz_pose", 2, rvizPoseCallback);
