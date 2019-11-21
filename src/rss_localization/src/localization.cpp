@@ -262,7 +262,6 @@ int main(int argc, char **argv) {
     if (!st)
         ROS_WARN("~sigma_tra not defined, using default");
 
-    ROS_INFO("STARTING MCL LOOP");
     unsigned long seq = 0;
     ROS_INFO("Waiting for valid map");
     while (ros::ok()) {
@@ -272,32 +271,12 @@ int main(int argc, char **argv) {
         loopRate.sleep();
     }
     ROS_INFO("Done");
-//    unsigned long pseq = 0;
 
-    // Test space conversions:
-//    while (ros::ok()) {
-//        ros::spinOnce();
-//        if (newPoint) {
-//            ROS_INFO("NEW POINT");
-//            newPoint = false;
-//            PointStamped ps;
-//            ps.header = Header();
-//            ps.header.seq = pseq;
-//            ps.header.frame_id = "map";
-//            auto temp = worldToGridCoords(clicked.point.x, clicked.point.y, MapHandler::currentMap);
-//            auto tp = gridToWorldCoords(temp, MapHandler::currentMap);
-//            ps.point.x = tp.getX();
-//            ps.point.y = tp.getY();
-//            debugMarkers.publish(ps);
-//            ++pseq;
-//        }
-//    }
-//
-//    return 0;
-
+    ROS_INFO("Placing");
     pf.initialiseParticles(MapHandler::currentMap);
     publishPoses(posePub, posesPub, weightsPub, pf, seq, br, Measurement());
 
+    ROS_INFO("STARTING MCL LOOP");
     while (ros::ok()) {
         ros::spinOnce();
         if (newPose) {
