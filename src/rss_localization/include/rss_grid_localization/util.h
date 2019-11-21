@@ -374,16 +374,20 @@ namespace rss {
     class SimplePose {
     public:
         SimplePose(double x, double y, double theta) : x(x), y(y), theta(theta) {}
+
         SimplePose(const geometry_msgs::Pose &pose) {
             theta = 0;// tf::getYaw(pose.orientation);
             x = pose.position.x;
             y = pose.position.y;
         }
+
         SimplePose(const tf::StampedTransform &t) {
             x = t.getOrigin().getX();
             y = t.getOrigin().getY();
             theta = tf::getYaw(t.getRotation());
         }
+
+        SimplePose() : x(0), y(0), theta(0) {}
 
         double x{};
         double y{};
