@@ -77,8 +77,10 @@ namespace rss {
         return z_max;
     }
 
-    LidarMeasurementModel::LidarMeasurementModel(double z_hit, double z_short, double z_max, double z_rand)
-            : z_hit(z_hit), z_short(z_short), z_max(z_max), z_rand(z_rand) {
+    LidarMeasurementModel::LidarMeasurementModel(double z_hit, double z_short, double z_max, double z_rand,
+                                                 double sigmaHit, double lamdaShort)
+            : z_hit(z_hit), z_short(z_short), z_max(z_max), z_rand(z_rand), sigmaHit(sigmaHit),
+              lambdaShort(lambdaShort) {
         if (z_hit + z_short + z_max + z_rand != 1.0) {
             cout << "Beam model weights don't sum to 1.0" << endl;
             cout << "Setting to equal weights..." << endl;
@@ -91,7 +93,7 @@ namespace rss {
 
     double LidarMeasurementModel::p_hit(const double &range, const double &prediction) {
         if (range >= 0.0 && range <= max_range) {
-            return normal_pdf(range, prediction, sigma_hit);
+            return normal_pdf(range, prediction, sigmaHit);
         } else {
             return 0.0;
         }
@@ -99,8 +101,8 @@ namespace rss {
 
     double LidarMeasurementModel::p_short(const double &range, const double &prediction) {
         if (range >= 0.0 && range <= max_range) {
-            double cumulative = 1 - exp(-lambda_short * prediction);
-            return lambda_short * exp(-lambda_short * range) / cumulative;
+            double cumulative = 1 - exp(-lambdaShort * prediction);
+            return lambdaShort * exp(-lambdaShort * range) / cumulative;
         } else {
             return 0.0;
         }

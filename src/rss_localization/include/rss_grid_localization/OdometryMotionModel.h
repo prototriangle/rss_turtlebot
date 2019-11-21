@@ -14,16 +14,14 @@ namespace rss {
         random_device rd{};
         default_random_engine gen{rd()};
         double a1, a2, a3, a4;
-        const double sigma1 = 0.01;
-        const double sigma2 = 0.014;
-        normal_distribution<> normalDistribution1{0.0, sigma1};
-        normal_distribution<> normalDistribution2{0.0, sigma2};
+        const double sigmaRot = 0.014;
+        const double sigmaTra = 0.01;
+        normal_distribution<> normalDistributionTra{0.0, sigmaTra};
+        normal_distribution<> normalDistributionRot{0.0, sigmaRot};
     public:
         explicit OdometryMotionModel(
-                double a1 = 0.25,
-                double a2 = 0.25,
-                double a3 = 0.25,
-                double a4 = 0.25) : a1(a1), a2(a2), a3(a3), a4(a4) {
+                double sigmaRot,
+                double sigmaTra) : sigmaRot(sigmaRot), sigmaTra(sigmaTra) {
         }
 
         SimplePose run(SimplePose currentPose, const Action &action) final;

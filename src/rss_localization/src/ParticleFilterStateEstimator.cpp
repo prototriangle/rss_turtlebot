@@ -106,7 +106,7 @@ namespace rss {
         }
     }
 
-    void ParticleFilterStateEstimator::initialiseParticles(const Map &map) {
+    void ParticleFilterStateEstimator::initialiseParticles(const Map &map, SimplePose pose) {
         ROS_DEBUG("Initialising Particles (%lu)", particleCount);
         // clear old particles
         particles.clear();
@@ -115,7 +115,7 @@ namespace rss {
         particles.reserve(particleCount);
         weights.reserve(particleCount);
 
-        SimplePose init = {2.1, 0.65, 0.0};
+        SimplePose init = pose;
         for (unsigned long i = 0; i < particleCount; ++i) {
             SimplePose offset = {normalDist(gen), normalDist(gen), 0};
             SimplePose randPose = init + offset;

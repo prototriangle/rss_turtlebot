@@ -155,7 +155,6 @@ publishPoses(const ros::Publisher &posePub,
     }
 
 
-
     geometry_msgs::PoseStamped poseEstimate;
     tf::Quaternion q;
 //    q.setW(1.0);
@@ -176,6 +175,7 @@ publishPoses(const ros::Publisher &posePub,
     marker.pose = poseEstimate.pose;
     marker.scale.x = 0.01;
     marker.id = ++i;
+    marker.ns = "Ranges";
     marker.color.a = 1.0;
     marker.color.r = 0.1;
     marker.color.g = 0.2;
@@ -210,36 +210,62 @@ publishPoses(const ros::Publisher &posePub,
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "localization");
-    ros::NodeHandle n;
+    ros::NodeHandle n("~");
     ROS_INFO("STARTING LOCALIZATION...");
     auto scanProcessor = ScanProcessor(360);
-    ros::Subscriber scanSub = n.subscribe("scan", 20, &ScanProcessor::recCallback, &scanProcessor);
-    ros::Subscriber initialMapSub = n.subscribe("lf", 20, MapHandler::recCallback);
-    ros::Subscriber odomSub = n.subscribe("odom", 20, odomCallback);
-    ros::Publisher posesPub = n.advertise<PoseArray>("particles", 2);
-    ros::Publisher posePub = n.advertise<PoseStamped>("pose_estimate", 2);
-    ros::Publisher weightsPub = n.advertise<MarkerArray>("weights", 2);
-    ros::Subscriber clickedSub = n.subscribe("clicked_point", 2, clickedPointCallback);
-    ros::Subscriber rvizPoseSub = n.subscribe("rviz_pose", 2, rvizPoseCallback);
-    ros::Publisher debugMarkers = n.advertise<PointStamped>("debug_markers", 2);
+    ros::Subscriber scanSub = n.subscribe("/scan", 20, &ScanProcessor::recCallback, &scanProcessor);
+    ros::Subscriber initialMapSub = n.subscribe("/lf", 20, MapHandler::recCallback);
+    ros::Subscriber odomSub = n.subscribe("/odom", 20, odomCallback);
+    ros::Publisher posesPub = n.advertise<PoseArray>("/particles", 2);
+    ros::Publisher posePub = n.advertise<PoseStamped>("/pose_estimate", 2);
+    ros::Publisher weightsPub = n.advertise<MarkerArray>("/weights", 2);
+    ros::Subscriber clickedSub = n.subscribe("/clicked_point", 2, clickedPointCallback);
+    ros::Subscriber rvizPoseSub = n.subscribe("/rviz_pose", 2, rvizPoseCallback);
+    ros::Publisher debugMarkers = n.advertise<PointStamped>("/debug_markers", 2);
     ros::Rate loopRate(20);
 
     tf::TransformBroadcaster br;
 
-    unsigned long particleCount = 64;
+    double particleCountD;
+    bool pc = n.param<double>("particle_count", particleCountD, 64.0);
+    auto particleCount = (unsigned long) abs(particleCountD);
 
-    LidarMeasurementModel measurementModel(0.94, 0.03, 0.01, 0.02);
-    OdometryMotionModel motionModel;
+    double sigmaHit;
+    bool sh = n.param<double>("sigma_hit", sigmaHit, 0.2);
+    double lambdaShort;
+    bool ls = n.param<double>("lambda_short", lambdaShort, 1.0);
+    LidarMeasurementModel measurementModel(0.94, 0.03, 0.01, 0.02, sigmaHit, lambdaShort);
+
+    double sigmaRot;
+    bool sr = n.param<double>("sigma_rot", sigmaRot, 0.014);
+    double sigmaTra;
+    bool st = n.param<double>("sigma_tra", sigmaTra, 0.005);
+    OdometryMotionModel motionModel(sigmaRot, sigmaTra);
+
     ParticleFilterStateEstimator pf = ParticleFilterStateEstimator(&measurementModel, &motionModel, particleCount);
+
+    // Warnings
+    if (!pc)
+        ROS_WARN("~particle_count not defined, using default");
+    if (!sh)
+        ROS_WARN("~sigma_hit not defined, using default");
+    if (!ls)
+        ROS_WARN("~lambda_short not defined, using default");
+    if (!sr)
+        ROS_WARN("~sigma_rot not defined, using default");
+    if (!st)
+        ROS_WARN("~sigma_tra not defined, using default");
 
     ROS_INFO("STARTING MCL LOOP");
     unsigned long seq = 0;
+    ROS_INFO("Waiting for valid map");
     while (ros::ok()) {
         ros::spinOnce();
         if (MapHandler::currentMap.valid)
             break;
         loopRate.sleep();
     }
+    ROS_INFO("Done");
 //    unsigned long pseq = 0;
 
     // Test space conversions:

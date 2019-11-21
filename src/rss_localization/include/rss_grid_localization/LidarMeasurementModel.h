@@ -24,12 +24,12 @@ namespace rss {
         random_device rd{};
         default_random_engine gen{rd()};
         double a1{}, a2{}, a3{}, a4{};
-        double sigma_hit = 0.2;
-        double lambda_short = 1.0;
+        double sigmaHit = 0.2;
+        double lambdaShort = 1.0;
         double z_hit, z_short, z_max, z_rand;
         double max_range = 4.0;
     public:
-        LidarMeasurementModel(double z_hit, double z_short, double z_max, double z_rand);
+        LidarMeasurementModel(double z_hit, double z_short, double z_max, double z_rand, double sigmaHit, double lamdaShort);
 
         double run(const Measurement &z, const SimplePose &pose, const Map &map) final;
 

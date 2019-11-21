@@ -55,7 +55,7 @@ namespace rss {
 
         void stochasticUniversalSampling();
 
-        void initialiseParticles(const Map &map);
+        void initialiseParticles(const Map &map, SimplePose pose = {2.1, 0.65, 0.0});
 
         vector<double> weights;
     };

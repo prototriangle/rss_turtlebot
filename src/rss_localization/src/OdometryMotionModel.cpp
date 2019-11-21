@@ -9,8 +9,8 @@ namespace rss {
         static double transThresh = 0.001;
         static double rotThresh = 0.00;
         bool pr = abs(action.trans) < transThresh || abs(action.rot) < rotThresh;
-        double s1 = pr ? 0 : normalDistribution1(gen);
-        double s2 = pr ? 0 : normalDistribution2(gen);
+        double s1 = pr ? 0 : normalDistributionTra(gen);
+        double s2 = pr ? 0 : normalDistributionRot(gen);
         double theta = currentPose.theta + action.rot + s2;
         double trans = action.trans + s1;
         return {
