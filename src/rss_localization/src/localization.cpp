@@ -131,7 +131,6 @@ publishPoses(const ros::Publisher &posePub,
         currentWeights.markers.push_back(marker);
     }
     if (newPose) {
-//        ROS_INFO("Publishing RVIZ POSE!");
         Marker marker;
         marker.header = currentPoses.header;
         marker.id = i;
@@ -159,13 +158,10 @@ publishPoses(const ros::Publisher &posePub,
         newPose = false;
     }
 
-
     Odometry poseEstimate;
     tf::Quaternion q;
-//    q.setW(1.0);
     q.setRPY(0, 0, pf.particles[maxWeightIndex].pose.theta);
     ROS_DEBUG("THETA: %f", pf.particles[maxWeightIndex].pose.theta);
-//    q = q.normalize();
     poseEstimate.header = Header();
     poseEstimate.header.seq = seq;
     poseEstimate.header.frame_id = "map";
