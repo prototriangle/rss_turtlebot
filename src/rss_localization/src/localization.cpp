@@ -29,10 +29,15 @@ using namespace rss;
 Odometry lastUsedOdom;
 Odometry lastReceivedOdom;
 bool newAction = false;
+bool firstAction = true;
 
 void odomCallback(const Odometry::ConstPtr &msg) {
     newAction = true;
     lastReceivedOdom = *msg;
+    if (firstAction) {
+        lastUsedOdom = lastReceivedOdom;
+        firstAction = false;
+    }
 }
 
 bool newPoint = false;
