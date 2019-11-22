@@ -35,7 +35,7 @@
     <param name="forward_speed" value="0.1"/>
     <param name="steering_p" value="4.0"/>
     <param name="steering_i" value="0.0"/>
-    <param name="steering_d" value="0.0"/>
+    <param name="steering_d" value="0.2"/>
   </node>
 
   <!-- Load Occupancy Grid -->
