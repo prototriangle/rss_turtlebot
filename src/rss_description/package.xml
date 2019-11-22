@@ -23,6 +23,9 @@
   <depend>tf</depend>
   <depend>urdf</depend>
   <depend>message_to_tf</depend>
+  <depend>gazebo_ros_control</depend>
+  <depend>position_controllers</depend>
+  <depend>effort_controllers</depend>
 
   <depend>turtlebot3_description</depend>
   <depend>turtlebot3_gazebo</depend>

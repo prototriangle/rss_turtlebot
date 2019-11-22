@@ -252,7 +252,7 @@
                 },
                 "dock_widget_title": {
                   "type": "repr",
-                  "repr": "u'&Topic Monitor'"
+                  "repr": "u'T&opic Monitor'"
                 }
               },
               "groups": {}
@@ -266,7 +266,7 @@
               "keys": {
                 "dockable": {
                   "type": "repr",
-                  "repr": "u'true'"
+                  "repr": "True"
                 },
                 "parent": {
                   "type": "repr",
