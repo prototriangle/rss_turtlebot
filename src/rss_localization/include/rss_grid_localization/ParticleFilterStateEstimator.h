@@ -12,24 +12,6 @@ namespace rss {
     class ParticleFilterStateEstimator {
     private:
 
-        class Particle {
-        private:
-            MeasurementModel *measurementModel;
-            MotionModel *motionModel;
-        public:
-            Particle(MeasurementModel *measurementModel,
-                     MotionModel *motionModel,
-                     SimplePose initialPose = {0, 0, 0})
-                    : measurementModel(measurementModel), motionModel(motionModel), pose(initialPose) {
-            }
-
-            SimplePose pose;
-
-            void move(const Action &action);
-
-            double measurementProb(const Measurement &z, const Map &map);
-        };
-
         static random_device rd;
         static default_random_engine gen;
         static uniform_real_distribution<> uniformLinDist;
@@ -38,6 +20,26 @@ namespace rss {
 
 
     public:
+
+      class Particle {
+       private:
+        MeasurementModel *measurementModel;
+        MotionModel *motionModel;
+       public:
+        Particle(MeasurementModel *measurementModel,
+                 MotionModel *motionModel,
+                 SimplePose initialPose = {0, 0, 0})
+            : measurementModel(measurementModel), motionModel(motionModel), pose(initialPose) {
+        }
+        Particle()=default;
+
+        SimplePose pose;
+
+        void move(const Action &action);
+
+        double measurementProb(const Measurement &z, const Map &map);
+      };
+
         MeasurementModel *measurementModel;
         MotionModel *motionModel;
         unsigned long particleCount;

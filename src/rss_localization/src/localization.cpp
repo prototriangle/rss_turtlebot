@@ -30,6 +30,8 @@ Odometry lastUsedOdom;
 Odometry lastReceivedOdom;
 bool newAction = false;
 bool firstAction = true;
+std::vector<ParticleFilterStateEstimator::Particle> particle_buffer;
+bool firstPublish = true;
 
 void odomCallback(const Odometry::ConstPtr &msg) {
     newAction = true;
@@ -71,6 +73,41 @@ bool shouldResample(const Action &action) {
     return (abs(action.trans) > trans_threshold || abs(action.rot) > rot_threshold);
 }
 
+nav_msgs::Odometry smoothPose(ParticleFilterStateEstimator::Particle particle) {
+    if (firstPublish) {
+      particle_buffer.resize(10);
+        for (auto p: particle_buffer) {
+            p = particle;
+        }
+        firstPublish = false;
+    } else {
+        particle_buffer.erase(particle_buffer.begin());
+        particle_buffer.push_back(particle);
+    }
+
+    // now estimate the average
+    double x = 0.0;
+    double y = 0.0;
+    double theta = 0.0;
+    for (auto& p: particle_buffer) {
+      x += p.pose.x;
+      y += p.pose.y;
+      theta += p.pose.theta;
+    }
+
+    nav_msgs::Odometry odom_msg;
+    odom_msg.header.stamp = ros::Time::now();
+    odom_msg.header.frame_id = "map";
+    odom_msg.pose.pose.position.x = x/particle_buffer.size();
+    odom_msg.pose.pose.position.y = y/particle_buffer.size();
+
+  tf::Quaternion q;
+  q.setRPY(0, 0, theta/particle_buffer.size());
+  ROS_DEBUG("theta normal: %f averaged: %f", particle.pose.theta, theta/particle_buffer.size());
+  tf::quaternionTFToMsg(q, odom_msg.pose.pose.orientation);
+  return odom_msg;
+}
+
 void
 publishPoses(const ros::Publisher &posePub,
              const ros::Publisher &posesPub,
@@ -93,18 +130,10 @@ publishPoses(const ros::Publisher &posePub,
         }
     }
 
-    Odometry poseEstimate;
-    tf::Quaternion q;
-    q.setRPY(0, 0, pf.particles[maxWeightIndex].pose.theta);
-    ROS_DEBUG("THETA: %f", pf.particles[maxWeightIndex].pose.theta);
-    poseEstimate.header = genericHeader;
-    poseEstimate.pose.pose.position.x = pf.particles[maxWeightIndex].pose.x;
-    poseEstimate.pose.pose.position.y = pf.particles[maxWeightIndex].pose.y;
-    poseEstimate.pose.pose.position.z = 0;
-    tf::quaternionTFToMsg(q, poseEstimate.pose.pose.orientation);
+    nav_msgs::Odometry poseEstimate = smoothPose(pf.particles[maxWeightIndex]);
     posePub.publish(poseEstimate);
 
-    if (posesPub.getNumSubscribers() > 0 && weightsPub.getNumSubscribers() > 0) {
+    if (posesPub.getNumSubscribers() > 0 || weightsPub.getNumSubscribers() > 0) {
         PoseArray currentPoses;
         currentPoses.poses.reserve(pf.particles.size());
         for (const auto &p : pf.particles) {
@@ -214,7 +243,9 @@ publishPoses(const ros::Publisher &posePub,
                     poseEstimate.pose.pose.position.x,
                     poseEstimate.pose.pose.position.y,
                     poseEstimate.pose.pose.position.z));
-    transform.setRotation(q);
+    tf::Quaternion quat;
+    quat.setValue(poseEstimate.pose.pose.orientation.x, poseEstimate.pose.pose.orientation.y, poseEstimate.pose.pose.orientation.z, poseEstimate.pose.pose.orientation.w);
+    transform.setRotation(quat);
     br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "base_footprint"));
 }
 
