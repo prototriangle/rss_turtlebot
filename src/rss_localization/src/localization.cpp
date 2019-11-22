@@ -80,25 +80,9 @@ publishPoses(const ros::Publisher &posePub,
              tf::TransformBroadcaster &br,
              const Measurement &z
 ) {
-    PoseArray currentPoses;
-    currentPoses.poses.reserve(pf.particles.size());
-    for (const auto &p : pf.particles) {
-        tf::Quaternion q;
-        q.setRPY(0, 0, p.pose.theta);
-        Pose newPose;
-        tf::quaternionTFToMsg(q, newPose.orientation);
-        newPose.position.x = p.pose.x;
-        newPose.position.y = p.pose.y;
-        currentPoses.poses.push_back(newPose);
-    }
-    currentPoses.header = Header();
-    currentPoses.header.frame_id = "map";
-    currentPoses.header.seq = seq;
-    ROS_DEBUG("Publishing %lu particles", currentPoses.poses.size());
-    posesPub.publish(currentPoses);
-
-
-    MarkerArray currentWeights;
+    auto genericHeader = Header();
+    genericHeader.frame_id = "map";
+    genericHeader.seq = seq;
 
     double maxWeight = 0;
     unsigned long maxWeightIndex = 0;
@@ -108,102 +92,119 @@ publishPoses(const ros::Publisher &posePub,
             maxWeightIndex = i;
         }
     }
-    currentWeights.markers.reserve(pf.particles.size());
-    unsigned long i;
-    for (i = 0; i < pf.particles.size(); ++i) {
-        Marker marker;
-        marker.header = currentPoses.header;
-        marker.id = i;
-        marker.pose = currentPoses.poses[i];
-        marker.type = Marker::SPHERE;
-        marker.ns = "Weights";
-        geometry_msgs::Vector3 scale;
-        scale.x = 0.025;
-        scale.y = 0.025;
-        scale.z = 0.025;
-        marker.scale = scale;
-        ColorRGBA c;
-        c.r = maxWeight != 0.0 ? pf.weights[i] / maxWeight : 1.0;
-        c.g = maxWeight != 0.0 ? pf.weights[i] / maxWeight : 1.0;
-        c.b = maxWeight != 0.0 ? pf.weights[i] / maxWeight : 1.0;
-        c.a = 1;
-        marker.color = c;
-        currentWeights.markers.push_back(marker);
-    }
-    if (newPose) {
-        Marker marker;
-        marker.header = currentPoses.header;
-        marker.id = i;
-        marker.pose = rvizPose;
-        marker.type = Marker::ARROW;
-        geometry_msgs::Vector3 scale;
-        scale.x = 0.2;
-        scale.y = 0.05;
-        scale.z = 0.05;
-        marker.scale = scale;
-        ColorRGBA c;
-        c.r = 1.0;
-        c.g = 0.7;
-        c.b = 0.0;
-        c.a = 1;
-        marker.color = c;
-        currentWeights.markers.push_back(marker);
-
-        marker.id = ++i;
-        marker.type = Marker::TEXT_VIEW_FACING;
-        double w = pf.measurementModel->run(z, marker.pose, MapHandler::currentMap);
-        marker.text = to_string(w);
-        marker.scale.z = 0.3;
-        currentWeights.markers.push_back(marker);
-        newPose = false;
-    }
 
     Odometry poseEstimate;
     tf::Quaternion q;
     q.setRPY(0, 0, pf.particles[maxWeightIndex].pose.theta);
     ROS_DEBUG("THETA: %f", pf.particles[maxWeightIndex].pose.theta);
-    poseEstimate.header = Header();
-    poseEstimate.header.seq = seq;
-    poseEstimate.header.frame_id = "map";
+    poseEstimate.header = genericHeader;
     poseEstimate.pose.pose.position.x = pf.particles[maxWeightIndex].pose.x;
     poseEstimate.pose.pose.position.y = pf.particles[maxWeightIndex].pose.y;
     poseEstimate.pose.pose.position.z = 0;
     tf::quaternionTFToMsg(q, poseEstimate.pose.pose.orientation);
-
-    Marker marker;
-    marker.header = currentPoses.header;
-    marker.type = Marker::LINE_LIST;
-    marker.pose = poseEstimate.pose.pose;
-    marker.scale.x = 0.01;
-    marker.id = ++i;
-    marker.ns = "Ranges";
-    marker.color.a = 1.0;
-    marker.color.r = 0.1;
-    marker.color.g = 0.2;
-    marker.color.b = 0.8;
-    marker.points.clear();
-    tf::Quaternion laserRot;
-    laserRot.setRPY(0, 0, z.laserPose.theta);
-    tf::quaternionTFToMsg(laserRot, marker.pose.orientation);
-    marker.pose.position.x = z.laserPose.x;
-    marker.pose.position.y = z.laserPose.y;
-    Point p0;
-    p0.x = 0;
-    p0.y = 0;
-    for (const auto &z_k : z.data) {
-        marker.points.push_back(p0);
-        Point p1;
-        double theta = z_k.angle;
-        double hitX = z_k.range * cos(theta);
-        double hitY = z_k.range * sin(theta);
-        p1.x = hitX;
-        p1.y = hitY;
-        marker.points.push_back(p1);
-    }
-    currentWeights.markers.push_back(marker);
-
     posePub.publish(poseEstimate);
-    weightsPub.publish(currentWeights);
+
+    if (posesPub.getNumSubscribers() > 0 && weightsPub.getNumSubscribers() > 0) {
+        PoseArray currentPoses;
+        currentPoses.poses.reserve(pf.particles.size());
+        for (const auto &p : pf.particles) {
+            tf::Quaternion q;
+            q.setRPY(0, 0, p.pose.theta);
+            Pose newPose;
+            tf::quaternionTFToMsg(q, newPose.orientation);
+            newPose.position.x = p.pose.x;
+            newPose.position.y = p.pose.y;
+            currentPoses.poses.push_back(newPose);
+        }
+        currentPoses.header = genericHeader;
+        ROS_DEBUG("Publishing %lu particles", currentPoses.poses.size());
+        posesPub.publish(currentPoses);
+
+        MarkerArray currentWeights;
+        currentWeights.markers.reserve(pf.particles.size());
+        unsigned long i;
+        for (i = 0; i < pf.particles.size(); ++i) {
+            Marker marker;
+            marker.header = currentPoses.header;
+            marker.id = i;
+            marker.pose = currentPoses.poses[i];
+            marker.type = Marker::SPHERE;
+            marker.ns = "Weights";
+            geometry_msgs::Vector3 scale;
+            scale.x = 0.025;
+            scale.y = 0.025;
+            scale.z = 0.025;
+            marker.scale = scale;
+            ColorRGBA c;
+            c.r = maxWeight != 0.0 ? pf.weights[i] / maxWeight : 1.0;
+            c.g = maxWeight != 0.0 ? pf.weights[i] / maxWeight : 1.0;
+            c.b = maxWeight != 0.0 ? pf.weights[i] / maxWeight : 1.0;
+            c.a = 1;
+            marker.color = c;
+            currentWeights.markers.push_back(marker);
+        }
+        if (newPose) {
+            Marker marker;
+            marker.header = genericHeader;
+            marker.id = i;
+            marker.pose = rvizPose;
+            marker.type = Marker::ARROW;
+            geometry_msgs::Vector3 scale;
+            scale.x = 0.2;
+            scale.y = 0.05;
+            scale.z = 0.05;
+            marker.scale = scale;
+            ColorRGBA c;
+            c.r = 1.0;
+            c.g = 0.7;
+            c.b = 0.0;
+            c.a = 1;
+            marker.color = c;
+            currentWeights.markers.push_back(marker);
+
+            marker.id = ++i;
+            marker.type = Marker::TEXT_VIEW_FACING;
+            double w = pf.measurementModel->run(z, marker.pose, MapHandler::currentMap);
+            marker.text = to_string(w);
+            marker.scale.z = 0.3;
+            currentWeights.markers.push_back(marker);
+            newPose = false;
+            
+            marker = Marker();
+            marker.header = genericHeader;
+            marker.type = Marker::LINE_LIST;
+            marker.pose = poseEstimate.pose.pose;
+            marker.scale.x = 0.01;
+            marker.id = ++i;
+            marker.ns = "Ranges";
+            marker.color.a = 1.0;
+            marker.color.r = 0.1;
+            marker.color.g = 0.2;
+            marker.color.b = 0.8;
+            marker.points.clear();
+            tf::Quaternion laserRot;
+            laserRot.setRPY(0, 0, z.laserPose.theta);
+            tf::quaternionTFToMsg(laserRot, marker.pose.orientation);
+            marker.pose.position.x = z.laserPose.x;
+            marker.pose.position.y = z.laserPose.y;
+            Point p0;
+            p0.x = 0;
+            p0.y = 0;
+            for (const auto &z_k : z.data) {
+                marker.points.push_back(p0);
+                Point p1;
+                double theta = z_k.angle;
+                double hitX = z_k.range * cos(theta);
+                double hitY = z_k.range * sin(theta);
+                p1.x = hitX;
+                p1.y = hitY;
+                marker.points.push_back(p1);
+            }
+            currentWeights.markers.push_back(marker);
+
+            weightsPub.publish(currentWeights);
+        }
+    }
 
     seq = seq + 1;
 
