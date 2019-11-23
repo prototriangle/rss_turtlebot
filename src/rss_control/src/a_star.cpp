@@ -222,7 +222,7 @@ void AStar::targetCallback(geometry_msgs::PointStamped point_msg) {
         nav_msgs::Path path_msg;
         path_msg.header.frame_id = MAP_FRAME;
         path_msg.header.stamp = ros::Time::now();
-          for (int i=path.size()-1; i>0; i=i-5) {
+          for (int i=path.size()-1; i>0; i=i-10) {
             geometry_msgs::PoseStamped geo_point;
             geo_point.header.frame_id = MAP_FRAME;
             geo_point.pose.position.x = (float)path[i].x * map_resolution_;
