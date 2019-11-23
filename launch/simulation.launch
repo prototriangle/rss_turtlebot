@@ -3,6 +3,7 @@
   <arg name="record" default="false"/>
   <arg name="rviz" default="false"/>
   <arg name="use_gt"/>
+  <arg name="loc" default="True"/>
 
   <!-- Simulation parameters -->
   <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
@@ -63,18 +64,27 @@
     <param name="steering_d" value="0.2"/>
   </node>
 
-  <!-- Load map -->
+  <!-- Load maps -->
+  <!-- Load Occupancy Grid -->
   <rosparam command="load" file="$(find rss_map_image_server)/config/map_params.yaml" ns="map_image_params"/>
   <node name="map_image_saver" pkg="rss_map_image_server" type="map_image_saver.py" output="screen"/>
   <node name="map_image_loader" pkg="rss_map_image_server" type="map_image_loader.py" output="screen">
     <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial_filled.bmp"/>
     <param name="load_init" value="True"/>
   </node>
+  <!-- Load Likelihood Field -->
+  <node name="lf_image_loader" pkg="rss_map_image_server" type="map_image_loader.py" output="screen">
+    <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial_lf.bmp"/>
+    <param name="map_topic" value="lf" />
+    <param name="load_init" value="True"/>
+  </node>
 
-
-  <!-- ROS Utilities -->
-  <node pkg="rqt_gui" type="rqt_gui" name="rqt" args="--perspective-file $(find rss_description)/rviz/rss.perspective"/>
-  <node pkg="rviz" type="rviz" name="rviz" if="$(arg rviz)" args="-d $(find rss_description)/rviz/turtlebot.rviz"/>
-  <node pkg="rosbag" type="record" name="rosbag_record" if="$(arg record)" args="record -a -o $(env HOME)/rosbags/turtlebot_sim_"/>
-
+  <!-- Localization -->
+  <node if="$(arg loc)" name="localization" pkg="rss_localization" type="rss_localization" output="screen" >
+    <param name="particle_count" value="128" />
+    <param name="sigma_hit" value="0.2" />
+    <param name="lambda_short" value="0.1" />
+    <param name="sigma_rot" value="0.01" />
+    <param name="sigma_tra" value="0.01" />
+  </node>
 </launch>

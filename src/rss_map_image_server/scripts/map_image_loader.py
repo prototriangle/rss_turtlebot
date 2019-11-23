@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from geometry_msgs.msg import Point, Quaternion
 from nav_msgs.msg import OccupancyGrid, MapMetaData
 from rss_map_image_server.srv import LoadMap, LoadMapResponse, LoadMapRequest
 import rospy
@@ -19,7 +20,7 @@ def handle_load_map(req):
     res = rospy.get_param("/map_image_params/resolution")
     name = req.name
     if name == "":
-        name = rospy.get_param("/map_image_loader/init_map_name")
+        name = rospy.get_param("~init_map_name")
         print "Load Initial Map: " + name
     else:
         print "Load Map: " + name
@@ -31,6 +32,7 @@ def handle_load_map(req):
         map = OccupancyGrid()
         map.data = image.flatten().tolist()
         map.info = MapMetaData(width=width, height=height, resolution=res)
+        map.info.origin.orientation.w = 1.0
         map.header.frame_id = map_frame
         map.header.seq = seq
         seq = seq + 1
@@ -44,8 +46,9 @@ def load_map_server():
     global pub
     rospy.init_node('load_map_server')
     s = rospy.Service('load_map', LoadMap, handle_load_map)
-    pub = rospy.Publisher('map', OccupancyGrid, queue_size=2, latch=True)  # type: rospy.Publisher
-    loadInit = rospy.get_param("/map_image_loader/load_init")  # type: bool
+    mapTopic = rospy.get_param("~map_topic", default='map')
+    pub = rospy.Publisher(mapTopic, OccupancyGrid, queue_size=2, latch=True)  # type: rospy.Publisher
+    loadInit = rospy.get_param("~load_init")  # type: bool
     rospy.loginfo("Ready to load maps")
     if loadInit:
         rospy.loginfo("Loading initial map...")
