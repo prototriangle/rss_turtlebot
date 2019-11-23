@@ -18,11 +18,10 @@ using namespace geometry_msgs;
 using namespace sensor_msgs;
 
 namespace rss {
-    class MotionModel {
-    public:
-        virtual SimplePose run(SimplePose currentPose, const Action &action) = 0;
-    };
+class MotionModel {
+ public:
+  virtual SimplePose run(SimplePose currentPose, const Action &action) = 0;
+};
 }
-
 
 #endif //RSS_LOCALIZATION_MOTIONMODEL_H

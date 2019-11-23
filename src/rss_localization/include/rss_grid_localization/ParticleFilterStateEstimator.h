@@ -6,63 +6,60 @@
 #include "MotionModel.h"
 #include <random>
 
-
 namespace rss {
 
-    class ParticleFilterStateEstimator {
-    private:
+class ParticleFilterStateEstimator {
+ private:
 
-        static random_device rd;
-        static default_random_engine gen;
-        static uniform_real_distribution<> uniformLinDist;
-        static uniform_real_distribution<> uniformRotDist;
-        static normal_distribution<> normalDist;
+  static random_device rd;
+  static default_random_engine gen;
+  static uniform_real_distribution<> uniformLinDist;
+  static uniform_real_distribution<> uniformRotDist;
+  static normal_distribution<> normalDist;
 
+ public:
 
-    public:
+  class Particle {
+   private:
+    MeasurementModel *measurementModel;
+    MotionModel *motionModel;
+   public:
+    Particle(MeasurementModel *measurementModel,
+             MotionModel *motionModel,
+             SimplePose initialPose = {0, 0, 0})
+        : measurementModel(measurementModel), motionModel(motionModel), pose(initialPose) {
+    }
+    Particle() = default;
 
-      class Particle {
-       private:
-        MeasurementModel *measurementModel;
-        MotionModel *motionModel;
-       public:
-        Particle(MeasurementModel *measurementModel,
-                 MotionModel *motionModel,
-                 SimplePose initialPose = {0, 0, 0})
-            : measurementModel(measurementModel), motionModel(motionModel), pose(initialPose) {
-        }
-        Particle()=default;
+    SimplePose pose;
 
-        SimplePose pose;
+    void move(const Action &action);
 
-        void move(const Action &action);
+    double measurementProb(const Measurement &z, const Map &map);
+  };
 
-        double measurementProb(const Measurement &z, const Map &map);
-      };
+  MeasurementModel *measurementModel;
+  MotionModel *motionModel;
+  unsigned long particleCount;
+  vector<Particle> particles;
 
-        MeasurementModel *measurementModel;
-        MotionModel *motionModel;
-        unsigned long particleCount;
-        vector<Particle> particles;
+  ParticleFilterStateEstimator(MeasurementModel *measurementModel,
+                               MotionModel *motionModel,
+                               unsigned long particleCount);
 
-        ParticleFilterStateEstimator(MeasurementModel *measurementModel,
-                                     MotionModel *motionModel,
-                                     unsigned long particleCount);
+  void actionUpdate(Action action);
 
-        void actionUpdate(Action action);
+  void measurementUpdate(const Measurement &z, const Map &m);
 
-        void measurementUpdate(const Measurement &z, const Map &m);
+  void particleUpdate();
 
-        void particleUpdate();
+  void stochasticUniversalSampling();
 
-        void stochasticUniversalSampling();
+  void initialiseParticles(const Map &map, SimplePose pose = {2.1, 0.65, 0.0});
 
-        void initialiseParticles(const Map &map, SimplePose pose = {2.1, 0.65, 0.0});
-
-        vector<double> weights;
-    };
+  vector<double> weights;
+};
 
 }
-
 
 #endif //RSS_LOCALIZATION_PARTICLEFILTERSTATEESTIMATOR_H

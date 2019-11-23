@@ -10,8 +10,12 @@ using namespace std;
 namespace rss {
 
 Measurement ScanProcessor::getMeasurement() {
+  if (currentScan.ranges.empty()) {
+    ROS_WARN("Localization: Couldn't get lidar scan. Trying again...");
+    ros::Duration(1).sleep();
+    return {};
+  }
   vector<RangeAnglePair> ranges;
-//        ranges.reserve(rayCount);
   for (unsigned int i = 0; i < rayCount; i += 3) {
     if (!useBadDataValue || currentScan.ranges[i] != badDataValue) {
       if (currentScan.ranges[i] > currentScan.range_min
@@ -37,7 +41,7 @@ ScanProcessor::ScanProcessor(unsigned int rayCount) : rayCount(rayCount) {
           ros::Time(0),
           transform);
       laserCenter = transform;
-      ROS_INFO("Laser Scanner is offset from /base_footprint by (x:%f,y:%f,θ=%f)",
+      ROS_INFO("Localization: Laser Scanner is offset from /base_footprint by (x:%f,y:%f,theta=%f)",
                laserCenter.x,
                laserCenter.y,
                laserCenter.theta);
@@ -56,11 +60,6 @@ ScanProcessor::ScanProcessor(unsigned int rayCount) : rayCount(rayCount) {
   double degIncr = 360.0 / this->rayCount;
   for (double currAngle = 0; currAngle < 360; currAngle += degIncr)
     angles.push_back(deg2rad(currAngle));
-}
-
-ScanProcessor::ScanProcessor(unsigned int rayCount, float badDataValue) : ScanProcessor(rayCount) {
-  this->badDataValue = badDataValue;
-  this->useBadDataValue = true;
 }
 
 }

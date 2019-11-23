@@ -8,12 +8,12 @@ using namespace nav_msgs;
 
 namespace rss {
 
-    class MapHandler {
-    public:
-        static Map currentMap;
+class MapHandler {
+ public:
+  static Map currentMap;
 
-        static void recCallback(const OccupancyGrid::ConstPtr &msg);
-    };
+  static void recCallback(const OccupancyGrid::ConstPtr &msg);
+};
 
 }
 
