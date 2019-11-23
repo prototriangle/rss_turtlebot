@@ -252,11 +252,10 @@ int main(int argc, char **argv) {
   ros::Subscriber scanSub = n.subscribe("/scan", 20, &ScanProcessor::recCallback, &scanProcessor);
   ros::Subscriber initialMapSub = n.subscribe("/lf", 20, MapHandler::recCallback);
   ros::Subscriber odomSub = n.subscribe("/odom", 20, odomCallback);
-  ros::Publisher posesPub = n.advertise<PoseArray>("/particles", 2);
-  ros::Publisher posePub = n.advertise<Odometry>("/pose_estimate", 2);
-  ros::Publisher weightsPub = n.advertise<MarkerArray>("/weights", 2);
+  ros::Publisher posesPub = n.advertise<PoseArray>("particles", 2);
+  ros::Publisher posePub = n.advertise<Odometry>("pose", 2);
+  ros::Publisher weightsPub = n.advertise<MarkerArray>("weights", 2);
   ros::Subscriber rvizPoseSub = n.subscribe("/rviz_pose", 2, rvizPoseCallback);
-  ros::Publisher debugMarkers = n.advertise<PointStamped>("/debug_markers", 2);
   ros::Rate loopRate(20);
 
   tf::TransformBroadcaster br;
