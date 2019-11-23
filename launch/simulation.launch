@@ -1,8 +1,9 @@
 <launch>
 
-  <arg name="record"/>
-  <arg name="rviz"/>
+  <arg name="record" default="false"/>
+  <arg name="rviz" default="false"/>
   <arg name="use_gt"/>
+  <arg name="loc" default="True"/>
 
   <!-- Simulation parameters -->
   <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
@@ -13,16 +14,16 @@
   <!-- Launch gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find rss_description)/worlds/rss.world"/>
-    <arg name="paused" value="false"/>
+    <arg name="paused" value="true"/>
     <arg name="use_sim_time" value="true"/>
-    <arg name="gui" value="false"/>
+    <arg name="gui" value="true"/>
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
   </include>
 
   <!-- Start the robot simulation -->
-  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find rss_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
-  <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description -gazebo_namespace /gazebo" />
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find rss_description)/urdf/turtlebot3_$(arg model)_px100_arm.urdf.xacro" />
+  <node pkg="gazebo_ros" type="spawn_model" name="urdf_spawner" args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
   <param name="cmd_vel_topic_name" value="cmd_vel"/>
   <node name="turtlebot3_drive" pkg="turtlebot3_gazebo" type="turtlebot3_drive" required="true" output="screen"/>
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
@@ -30,44 +31,60 @@
     <param name="tf_prefix" value=""/>
   </node>
 
+  <!-- Start the arm simulation -->
+  <rosparam file="$(find rss_description)/config/px100_gazebo_controllers.yaml" command="load"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="arm_controller gripper_controller joint_state_controller"/>
+  <node name="arm_control_wrapper" pkg="rss_description" type="arm_control.py"/>
+
   <!-- Decide if we want to use ground truth odometry -->
   <node pkg="message_to_tf" type="message_to_tf" name="message_to_tf" if="$(arg use_gt)" args="/gt_pose"/>
+  <!-- End of core simulation launch. Everything below is applicable to real world -->
 
-    <!-- Start control stack -->
+
+  <!-- Start control stack -->
   <include file="$(find rss_control)/launch/mux.launch">
     <arg name="cmd_vel_out" value="/cmd_vel"/>
   </include>
 
-      <node pkg="rss_control" type="a_star_node" name="a_star" output="screen">
-        <param name="debug" value="false"/>
-        <param name="odom_in_topic" value="/gt_pose"/>
-        <param name="map_in_topic" value="/map"/>
-        <param name="target_point_topic" value="/clicked_point"/>
-        <param name="robot_radius" value="0.25"/>
-    </node>
+  <node pkg="rss_control" type="a_star_node" name="a_star" output="screen">
+    <param name="debug" value="false"/>
+    <param name="odom_in_topic" value="/gt_pose"/>
+    <param name="map_in_topic" value="/map"/>
+    <param name="target_point_topic" value="/clicked_point"/>
+    <param name="robot_radius" value="0.25"/>
+  </node>
 
-        <node pkg="rss_control" type="controller_node" name="controller" output="screen">
-        <param name="debug" value="true"/>
-        <param name="path_in_topic" value="/a_star/path"/>
-        <param name="control_frequency" value="50"/>
-        <param name="forward_speed" value="0.1"/>
-        <param name="steering_p" value="4.0"/>
-        <param name="steering_i" value="0.0"/>
-        <param name="steering_d" value="0.2"/>
-    </node>
+  <node pkg="rss_control" type="controller_node" name="controller" output="screen">
+    <param name="debug" value="true"/>
+    <param name="path_in_topic" value="/a_star/path"/>
+    <param name="control_frequency" value="50"/>
+    <param name="forward_speed" value="0.1"/>
+    <param name="steering_p" value="4.0"/>
+    <param name="steering_i" value="0.0"/>
+    <param name="steering_d" value="0.2"/>
+  </node>
 
-  <node pkg="rqt_gui" type="rqt_gui" name="rqt" args="--perspective-file $(find rss_description)/rviz/rss.perspective"/>
-
-  <node pkg="rviz" type="rviz" name="rviz" if="$(arg rviz)" args="-d $(find rss_description)/rviz/turtlebot.rviz"/>
-
-  <node pkg="rosbag" type="record" name="rosbag_record" if="$(arg record)" args="record -a -o $(env HOME)/rosbags/turtlebot_sim_"/>
-
-  <!-- Load map -->
+  <!-- Load maps -->
+  <!-- Load Occupancy Grid -->
   <rosparam command="load" file="$(find rss_map_image_server)/config/map_params.yaml" ns="map_image_params"/>
   <node name="map_image_saver" pkg="rss_map_image_server" type="map_image_saver.py" output="screen"/>
   <node name="map_image_loader" pkg="rss_map_image_server" type="map_image_loader.py" output="screen">
     <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial_filled.bmp"/>
     <param name="load_init" value="True"/>
   </node>
+  <!-- Load Likelihood Field -->
+  <node name="lf_image_loader" pkg="rss_map_image_server" type="map_image_loader.py" output="screen">
+    <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial_lf.bmp"/>
+    <param name="map_topic" value="lf" />
+    <param name="load_init" value="True"/>
+  </node>
 
+  <!-- Localization -->
+  <node if="$(arg loc)" name="localization" pkg="rss_localization" type="rss_localization" output="screen" >
+    <param name="particle_count" value="128" />
+    <param name="sigma_hit" value="0.2" />
+    <param name="lambda_short" value="0.1" />
+    <param name="sigma_rot" value="0.01" />
+    <param name="sigma_tra" value="0.01" />
+  </node>
 </launch>
