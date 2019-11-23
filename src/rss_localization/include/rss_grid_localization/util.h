@@ -369,9 +369,9 @@ namespace rss {
         SimplePose(double x, double y, double theta) : x(x), y(y), theta(theta) {}
 
         SimplePose(const geometry_msgs::Pose &pose) {
-            theta = 0;// tf::getYaw(pose.orientation);
             x = pose.position.x;
             y = pose.position.y;
+            theta = tf::getYaw(pose.orientation);
         }
 
         SimplePose(const tf::StampedTransform &t) {

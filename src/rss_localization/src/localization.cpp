@@ -69,7 +69,6 @@ Action getAction() {
 bool shouldResample(const Action &action) {
     static const double trans_threshold = 0.0005;
     static const double rot_threshold = 0.04;
-//    return true;
     return (abs(action.trans) > trans_threshold || abs(action.rot) > rot_threshold);
 }
 
@@ -283,6 +282,13 @@ int main(int argc, char **argv) {
     bool st = n.param<double>("sigma_tra", sigmaTra, 0.005);
     OdometryMotionModel motionModel(sigmaRot, sigmaTra);
 
+    // Get starting position
+    double init_x, init_y, init_theta;
+    n.param<double>("init_x", init_x, 2.1);
+    n.param<double>("init_y", init_y, 0.65);
+    n.param<double>("init_theta", init_theta, 0.0);
+    SimplePose start_pose = {init_x, init_y, init_theta};
+
     ParticleFilterStateEstimator pf = ParticleFilterStateEstimator(&measurementModel, &motionModel, particleCount);
 
     // Warnings
@@ -308,7 +314,9 @@ int main(int argc, char **argv) {
     ROS_INFO("Done");
 
     ROS_INFO("Placing");
-    pf.initialiseParticles(MapHandler::currentMap);
+
+    // TODO parametarise
+    pf.initialiseParticles(MapHandler::currentMap, start_pose);
     publishPoses(posePub, posesPub, weightsPub, pf, seq, br, Measurement());
 
     ROS_INFO("STARTING MCL LOOP");
@@ -329,7 +337,6 @@ int main(int argc, char **argv) {
 
             auto z = scanProcessor.getMeasurement();
             pf.measurementUpdate(z, MapHandler::currentMap);
-//            publishPoses(posePub, posesPub, weightsPub, pf, seq, br);
 
             if (rand() < RAND_MAX / 4.0 && shouldResample(action)) {
                 pf.particleUpdate();
