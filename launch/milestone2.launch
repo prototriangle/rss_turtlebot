@@ -1,0 +1,66 @@
+<launch>
+
+  <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
+
+  <!-- Launch transform system -->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0" />
+    <param name="tf_prefix" value=""/>
+  </node>
+
+  <!-- Start core turtlebot stack -->
+  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_core.launch">
+    <arg name="multi_robot_name" value="bad" /> 
+  </include>
+  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_lidar.launch"/> 
+
+  <!-- Start control stack -->
+  <include file="$(find rss_control)/launch/mux.launch">
+    <arg name="cmd_vel_out" value="/cmd_vel"/>
+  </include>
+
+  <node pkg="rss_control" type="a_star_node" name="a_star" output="screen">
+    <param name="debug" value="false"/>
+    <param name="odom_in_topic" value="/localization/pose"/>
+    <param name="map_in_topic" value="/map"/>
+    <param name="target_point_topic" value="/clicked_point"/>
+    <param name="robot_radius" value="0.27"/>
+  </node>
+
+  <node pkg="rss_control" type="controller_node" name="controller" output="screen">
+    <param name="debug" value="false"/>
+    <param name="path_in_topic" value="/a_star/path"/>
+    <param name="control_frequency" value="50"/>
+    <param name="forward_speed" value="0.1"/>
+    <param name="steering_p" value="2.5"/>
+    <param name="steering_i" value="0.0"/>
+    <param name="steering_d" value="0.2"/>
+  </node>
+
+  <!-- Load Occupancy Grid -->
+  <rosparam command="load" file="$(find rss_map_image_server)/config/map_params.yaml" ns="map_image_params"/>
+  <node name="map_image_saver" pkg="rss_map_image_server" type="map_image_saver.py" output="screen"/>
+  <node name="map_image_loader" pkg="rss_map_image_server" type="map_image_loader.py" output="screen">
+    <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial_filled.bmp"/>
+    <param name="load_init" value="True"/>
+  </node>
+
+  <!-- Load Likelihood Field -->
+  <node name="lf_image_loader" pkg="rss_map_image_server" type="map_image_loader.py" output="screen">
+    <param name="init_map_name" value="$(find rss_map_image_server)/maps/initial_lf.bmp"/>
+    <param name="map_topic" value="lf" />
+    <param name="load_init" value="True"/>
+  </node>
+
+  <!-- Start Localization Node -->
+  <node name="localization" pkg="rss_localization" type="rss_localization" output="screen">
+    <param name="particle_count" value="500"/>
+    <param name="init_x" value="2.1"/>
+    <param name="init_y" value="0.65"/>
+    <param name="init_theta" value="0.0"/>
+    <param name="sigma_rot" value="0.04" />
+    <param name="sigma_tra" value="0.005" />
+  </node>
+
+</launch>

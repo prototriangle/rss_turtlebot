@@ -5,10 +5,10 @@
 
 namespace rss {
 
-    class MeasurementModel {
-    public:
-        virtual double run(const Measurement &z, const SimplePose &x, const Map &map) = 0;
-    };
+class MeasurementModel {
+ public:
+  virtual double run(const Measurement &z, const SimplePose &x, const Map &map) = 0;
+};
 
 }
 
