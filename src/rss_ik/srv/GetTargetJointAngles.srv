@@ -1,0 +1,7 @@
+float64 x
+float64 y
+float64 z
+float64 phi
+---
+std_msgs/Float64MultiArray angles
+bool valid
