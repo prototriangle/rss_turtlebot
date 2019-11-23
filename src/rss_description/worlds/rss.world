@@ -37,6 +37,34 @@
       <pose>2.1 0.65 0.0 0 0 0</pose>
     </include>
 
+    <!-- Map x offset 3.92m -->
+    <!-- Map y offset 4.48m -->
+
+    <include>
+      <uri>model://button</uri>
+      <pose>3.62 0.55 0.07 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://box</uri>
+      <pose>3.09 3.705 0.13 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://rock</uri>
+      <pose>1.42 3.93 0.03 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://rock</uri>
+      <pose>2.75 1.48 0.03 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://rock</uri>
+      <pose>1.16 1.57 0.03 0 0 0</pose>
+    </include>
+
     <scene>
       <ambient>0.4 0.4 0.4 1</ambient>
       <background>0.7 0.7 0.7 1</background>
