@@ -87,7 +87,7 @@ class StateMachine:
                 rospy.logdebug("state_machine: OFF state; other nodes not initialised")
 
         elif self.state == State.ON:
-            if (timestamp - self.action_issue_timestamp) > rospy.Duration.from_sec(5):
+            if (timestamp - self.action_issue_timestamp) > rospy.Duration.from_sec(10):
                 self.n_action_step = 0
                 rospy.loginfo("state_machine: Going into ISSUE_ACTION state")
                 self.state = State.ISSUE_ACTION

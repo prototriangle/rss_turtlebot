@@ -3,6 +3,11 @@ arm_status_topic: /arm_controller/status
 gripper_status_topic: /gripper/status
 
 action_list:
-  - move: [3.5, 0.6]
-  - move: [3.0, 4.0]
-  - move: [1.2, 3.0]
+  - move: [3.35, 0.55]   # the button
+  - move: [3.34, 0.95]   # above from the button so that we don't hit it
+  - move: [3.45, 3.90]   # a bit away from the boxes
+  - move: [3.15, 3.90]   # between the 2 boxes
+  - move: [1.42, 3.93]   # rock 1 
+  - move: [2.65, 1.48]   # rock 2 
+  - move: [1.16, 1.67]   # rock 3 
+  - move: [2.15, 0.57]   # starting position (i.e. base)
