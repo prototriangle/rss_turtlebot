@@ -24,7 +24,7 @@
     <param name="debug" value="false"/>
     <param name="odom_in_topic" value="/localization/pose"/>
     <param name="map_in_topic" value="/map"/>
-    <param name="target_point_topic" value="/clicked_point"/>
+    <param name="target_point_topic" value="/state_machine/move_position"/>
     <param name="robot_radius" value="0.27"/>
   </node>
 
@@ -56,11 +56,16 @@
   <!-- Start Localization Node -->
   <node name="localization" pkg="rss_localization" type="rss_localization" output="screen">
     <param name="particle_count" value="500"/>
-    <param name="init_x" value="2.1"/>
-    <param name="init_y" value="0.65"/>
+    <param name="init_x" value="2.2"/>
+    <param name="init_y" value="0.57"/>
     <param name="init_theta" value="0.0"/>
     <param name="sigma_rot" value="0.04" />
     <param name="sigma_tra" value="0.005" />
+  </node>
+
+  <!-- Start high-level state machine -->
+  <node name="state_machine" pkg="rss_state_machine" type="rss_state_machine.py" output="screen">
+    <rosparam command="load" file="$(find rss_state_machine)/config/rss_state_machine.yaml"/>
   </node>
 
 </launch>

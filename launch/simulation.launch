@@ -2,13 +2,12 @@
 
   <arg name="record" default="false"/>
   <arg name="rviz" default="false"/>
-  <arg name="use_gt"/>
-  <arg name="loc" default="True"/>
+  <arg name="use_gt" default="false"/>
 
   <!-- Simulation parameters -->
   <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
-  <arg name="x_pos" default="2.1"/>
-  <arg name="y_pos" default="0.65"/>
+  <arg name="x_pos" default="2.15"/>
+  <arg name="y_pos" default="0.57"/>
   <arg name="z_pos" default="0.0"/>
 
   <!-- Launch gazebo -->
@@ -48,18 +47,18 @@
 
   <node pkg="rss_control" type="a_star_node" name="a_star" output="screen">
     <param name="debug" value="false"/>
-    <param name="odom_in_topic" value="/gt_pose"/>
+    <param name="odom_in_topic" value="/localization/pose"/>
     <param name="map_in_topic" value="/map"/>
-    <param name="target_point_topic" value="/clicked_point"/>
+    <param name="target_point_topic" value="/state_machine/move_position"/>
     <param name="robot_radius" value="0.25"/>
   </node>
 
   <node pkg="rss_control" type="controller_node" name="controller" output="screen">
-    <param name="debug" value="true"/>
+    <param name="debug" value="false"/>
     <param name="path_in_topic" value="/a_star/path"/>
     <param name="control_frequency" value="50"/>
     <param name="forward_speed" value="0.1"/>
-    <param name="steering_p" value="4.0"/>
+    <param name="steering_p" value="2.5"/>
     <param name="steering_i" value="0.0"/>
     <param name="steering_d" value="0.2"/>
   </node>
@@ -79,12 +78,19 @@
     <param name="load_init" value="True"/>
   </node>
 
-  <!-- Localization -->
-  <node if="$(arg loc)" name="localization" pkg="rss_localization" type="rss_localization" output="screen" >
-    <param name="particle_count" value="128" />
-    <param name="sigma_hit" value="0.2" />
-    <param name="lambda_short" value="0.1" />
-    <param name="sigma_rot" value="0.01" />
-    <param name="sigma_tra" value="0.01" />
+  <!-- Start Localization Node -->
+  <node name="localization" pkg="rss_localization" type="rss_localization" output="screen">
+    <param name="particle_count" value="500"/>
+    <param name="init_x" value="2.15"/>
+    <param name="init_y" value="0.57"/>
+    <param name="init_theta" value="0.0"/>
+    <param name="sigma_rot" value="0.04" />
+    <param name="sigma_tra" value="0.005" />
   </node>
+
+  <!-- Start high-level state machine -->
+  <node name="state_machine" pkg="rss_state_machine" type="rss_state_machine.py" output="screen">
+    <rosparam command="load" file="$(find rss_state_machine)/config/rss_state_machine.yaml"/>
+  </node>
+
 </launch>
