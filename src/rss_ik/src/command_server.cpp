@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "std_msgs/Float64MultiArray.h"
+#include "std_msgs/Int16.h"
 #include "rss_ik/GetTargetJointAngles.h"
 #include "rss_ik/SendIKCommand.h"
 #include "rss_ik/Sequences.h"
@@ -11,6 +12,7 @@ using namespace std;
 
 namespace rss {
     ros::Publisher jointPub;
+    ros::Publisher statusPub;
     ros::Subscriber armPosSub;
     ros::ServiceClient targetServiceClient;
 
@@ -18,10 +20,11 @@ namespace rss {
     tf::TransformListener *listener;
 
     void processCommand(const rss_ik::SendIKCommand::ConstPtr &msg) {
+        ROS_INFO("Processing IK Command");
         typedef rss_ik::SendIKCommand Com;
         double x = msg->x;
         double y = msg->y;
-        while (true) {
+        while (false) {
             tf::StampedTransform transform;
             try {
                 listener->lookupTransform(
@@ -38,6 +41,9 @@ namespace rss {
                 ros::Duration(0.5).sleep();
             }
         }
+        std_msgs::Int16 status;
+        status.data = 1;
+        statusPub.publish(status);
         switch(msg->command) {
             case Com::BUTTON:
                 FrameSequence(rss::sequences::BUTTON).play(x, y, jointPub, targetServiceClient);
@@ -66,6 +72,8 @@ namespace rss {
             default:
                 break;
         }
+        status.data = 2;
+        statusPub.publish(status);
     }
 }
 
@@ -73,11 +81,15 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "ik_command_server");
     ros::NodeHandle n("~ik");
     rss::armPosSub = n.subscribe("/state_machine/arm_position", 1, rss::processCommand);
-    rss::jointPub = n.advertise<std_msgs::Float64MultiArray>("/joint_trajectory_point", 4);
+    rss::jointPub = n.advertise<std_msgs::Float64MultiArray>("/joint_trajectory_point", 1);
+    rss::statusPub = n.advertise<std_msgs::Int16>("/arm_controller/status", 1, true);
     rss::targetServiceClient = n.serviceClient<rss_ik::GetTargetJointAngles>("/get_target_joint_angles", true);
     ROS_INFO("Starting IK Command Server");
     tf::TransformListener l;
     rss::listener = &l;
+    std_msgs::Int16 status;
+    status.data = 0;
+    rss::statusPub.publish(status);
     ros::spin();
     return 0;
 }
