@@ -117,7 +117,7 @@ namespace rss {
             res.valid = false;
             return false;
         }
-        JointAngles solution(theta1, theta2, theta3, theta4);
+        JointAngles solution(theta1, theta2, theta3, theta4, req.gripper);
         res.angles = solution.getMessage();
         current = solution.getMessage();
         res.valid = true;
@@ -130,16 +130,17 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "ik_server");
     ros::NodeHandle n("~");
     ros::ServiceServer service = n.advertiseService("/get_target_joint_angles", rss::doIk);
-    ros::Publisher jointPub = n.advertise<std_msgs::Float64MultiArray>("/joint_trajectory_point", 4);
+//    ros::Publisher jointPub = n.advertise<std_msgs::Float64MultiArray>("/joint_trajectory_point", 4);
     ROS_INFO("Starting IK Server");
-    while (ros::ok()) {
-        ros::spinOnce();
-        if (rss::needsUpdate) {
-            jointPub.publish(rss::current);
-            rss::needsUpdate = false;
-        }
-
-    }
+//    while (ros::ok()) {
+//        ros::spinOnce();
+//        if (rss::needsUpdate) {
+//            jointPub.publish(rss::current);
+//            rss::needsUpdate = false;
+//        }
+//
+//    }
+    ros::spin();
     return 0;
 }
 

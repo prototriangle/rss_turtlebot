@@ -20,6 +20,11 @@ add_service_files(
         GetTargetJointAngles.srv
 )
 
+add_message_files(
+        FILES
+        SendIKCommand.msg
+)
+
 generate_messages(
         DEPENDENCIES
         std_msgs
@@ -38,7 +43,15 @@ include_directories(
 add_executable(${PROJECT_NAME}_server src/ik_server.cpp)
 target_link_libraries(${PROJECT_NAME}_server
         ${catkin_LIBRARIES}
-)
+        )
 add_dependencies(${PROJECT_NAME}_server
         ${PROJECT_NAME}_gencpp
-)
+        )
+
+add_executable(${PROJECT_NAME}_command_server src/command_server.cpp)
+target_link_libraries(${PROJECT_NAME}_command_server
+        ${catkin_LIBRARIES}
+        )
+add_dependencies(${PROJECT_NAME}_command_server
+        ${PROJECT_NAME}_gencpp
+        )
