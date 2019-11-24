@@ -55,7 +55,7 @@
 
   <!-- Start Localization Node -->
   <node name="localization" pkg="rss_localization" type="rss_localization" output="screen">
-    <param name="particle_count" value="500"/>
+    <param name="particle_count" value="250"/>
     <param name="init_x" value="2.2"/>
     <param name="init_y" value="0.57"/>
     <param name="init_theta" value="0.0"/>
