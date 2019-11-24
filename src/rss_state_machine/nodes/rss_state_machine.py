@@ -7,6 +7,7 @@ import numpy as np
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 import geometry_msgs.msg as geometry_msgs
 import std_msgs.msg as std_msgs
+from rss_ik.msg import SendIKCommand
 
 
 class State(Enum):
@@ -40,7 +41,7 @@ class StateMachine:
 
         # Publishers
         self.planner_pub = rospy.Publisher("~move_position", geometry_msgs.PointStamped, queue_size=1)
-        self.arm_pub = rospy.Publisher("~arm_position", geometry_msgs.PointStamped, queue_size=1)
+        self.arm_pub = rospy.Publisher("~arm_position", SendIKCommand, queue_size=1)
         self.gripper_pub = rospy.Publisher("~gripper_position", geometry_msgs.PointStamped, queue_size=1)
 
         # Subscribers
@@ -79,7 +80,7 @@ class StateMachine:
 
         # Start switch statement
         if self.state == State.OFF:
-            if (self.controller_status == 0) and (self.arm_status == 0) and (self.gripper_status == 0):
+            if (self.controller_status == 0) and (self.arm_status == 0):
                 rospy.loginfo("state_machine: Going to ON state")
                 self.state = State.ON
                 self.action_issue_timestamp = timestamp
@@ -105,10 +106,13 @@ class StateMachine:
                 rospy.logdebug("state_machine: Published point for planner")
                 self.state = State.WAITING_MOVE
             elif action_name == "arm":
-                # TODO
-                pass
-            elif action_name == "gripper":
-                # TODO
+                s = SendIKCommand()
+                s.x = action[action_name][0]
+                s.y = action[action_name][1]
+                s.command = action[action_name][2]
+                self.arm_pub.publish(s)
+                rospy.logdebug("state_machine: Published command for arm")
+                self.state = State.WAITING_ARM
                 pass
             else:
                 rospy.logfatal("state_machine: action name not recognised: ", action_name)
@@ -130,7 +134,8 @@ class StateMachine:
 
         elif self.state == State.WAITING_ARM:
             # first check if enough time has passed
-            if (timestamp - self.action_issue_timestamp > self.state_feedback_delay):
+            if (timestamp - self.action_issue_timestamp) > rospy.Duration.from_sec(self.state_feedback_delay):
+                rospy.loginfo("state_machine: arm_status=%d", self.arm_status)
                 if self.arm_status == 2:
                     rospy.loginfo("state_machine: action succesfully completed")
                     self.n_action_step += 1
