@@ -22,7 +22,7 @@ namespace rss {
             unsigned int i = 0;
             while (stream >> d) {
                 *vars[i] = d;
-                ROS_INFO("Value: %f", d);
+//                ROS_INFO("Value: %f", d);
                 i = (i + 1) % lineLength;
                 if (i == 0) {
                     frames.emplace_back(x, y, z, phi, gripper, duration);
@@ -72,12 +72,19 @@ namespace rss {
                 rss_ik::GetTargetJointAngles::Request req = frame.toRequest(
                         currentX, currentY, currentZ, currentPhi, currentGripper
                 );
+                currentX = req.x;
+                currentY = req.y;
+                currentZ = req.z;
+                currentPhi = req.phi;
+                currentGripper = req.gripper;
                 bool success = IKServiceClient.call(req, res);
                 if (success) {
-                    jointTrajPub.publish(res.angles);
                     ros::Duration(frame.duration).sleep();
+                    jointTrajPub.publish(res.angles);
                 } else {
-                    ROS_WARN("Call to IK Service failed.");
+                    ROS_WARN("Call (%f, %f, %f, %f, %f) to IK Service failed.",
+                             req.x, req.y, req.z, req.phi, req.gripper);
+                    ros::Duration(frame.duration).sleep();
                     continue;
                 }
 
@@ -87,16 +94,16 @@ namespace rss {
     namespace sequences {
         //scoop center initial 0.18 0 -0.12 -1.2 0 0.1
         const auto SCOOP_CENTER = R"(
-0       0       -0.12   -1.5    0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
-0       0       0.02    0       0       0.1
-0       0       0.04    0       0       0.1
-0.04    0       0.01    0       0       0.1)";
+0       0       -0.12   -1.5    0       1
+-0.01   0       0       0       0       1
+-0.01   0       0       0       0       1
+-0.01   0       0       0       0       1
+-0.01   0       0       0       0       1
+-0.01   0       0       0       0       1
+-0.01   0       0       0       0       1
+0       0       0.02    0       0       1
+0       0       0.04    0       0       1
+0.04    0       0.01    0       0       1)";
 
         /*TODO*/
         const auto SCOOP_RIGHT = R"(
@@ -124,44 +131,64 @@ namespace rss {
 0       0       0.04    0       0       0.1
 0.04    0       0.01    0       0       0.1)";
 
-        /*TODO*/
         const auto PUSH_RIGHT = R"(
-0       0       -0.12   -1.5    0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
-0       0       0.02    0       0       0.1
-0       0       0.04    0       0       0.1
-0.04    0       0.01    0       0       0.1)";
+0       0       -0.02   -0.1    0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0.01    0       0       0.1
+0       -0.01   0.01    0       0       0.1
+0       -0.01   0.01    0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0.01    0       0       0.1
+0       -0.01   0.01    0       0       0.1
+0       -0.01   0.01    0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0       0       0       0.1
+0       -0.01   0.01    0       0       0.1
+0       -0.01   0.01    0       0       0.1
+0       -0.01   0.01    0       0       0.1)";
 
-        /*TODO*/
         const auto PUSH_LEFT = R"(
-0       0       -0.12   -1.5    0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
-0       0       0.02    0       0       0.1
-0       0       0.04    0       0       0.1
-0.04    0       0.01    0       0       0.1)";
+0       0       -0.02   -0.1    0       0.1
+0       0.01    0       0       0       0.1
+0       0.01    0       0       0       0.1
+0       0.01    0       0       0       0.1
+0       0.01   0       0       0       0.1
+0       0.01   0       0       0       0.1
+0       0.01   0       0       0       0.1
+0       0.01   0.01    0       0       0.1
+0       0.01   0.01    0       0       0.1
+0       0.01   0.01    0       0       0.1
+0       0.01   0       0       0       0.1
+0       0.01   0       0       0       0.1
+0       0.01   0       0       0       0.1
+0       0.01   0       0       0       0.1
+0       0.01   0.01    0       0       0.1
+0       0.01   0.01    0       0       0.1
+0       0.01   0.01    0       0       0.1
+0       0.01   0       0       0       0.1
+0       0.01   0       0       0       0.1
+0       0.01   0.01    0       0       0.1
+0       0.01   0.01    0       0       0.1
+0       0.01   0.01    0       0       0.1)";
 
         /*TODO*/
         const auto BUTTON = R"(
-0       0       -0.12   -1.5    0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
--0.01   0       0       0       0       0.1
-0       0       0.02    0       0       0.1
-0       0       0.04    0       0       0.1
-0.04    0       0.01    0       0       0.1)";
+0       0       0.02   -0.5     0       0.1
+0       0       -0.02    0       0       0.1
+0       0       -0.02    0       0       0.1
+0       0       -0.02    0       0       0.1
+0       0       -0.02    0       0       0.1
+0       0       -0.0     0       0       0.1
+0       0       0.04     0       0       0.1
+0       0       0.01    0       0       0.1)";
 
         /*TODO*/
         const auto GRAB = R"(
