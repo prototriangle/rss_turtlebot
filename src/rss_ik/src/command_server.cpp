@@ -46,12 +46,15 @@ namespace rss {
         statusPub.publish(status);
         switch(msg->command) {
             case Com::BUTTON:
+                ROS_INFO("BUTTON");
                 FrameSequence(rss::sequences::BUTTON).play(x, y, jointPub, targetServiceClient);
                 break;
             case Com::PUSH_RIGHT:
+                ROS_INFO("PUSH_RIGHT");
                 FrameSequence(rss::sequences::PUSH_RIGHT).play(x, y, jointPub, targetServiceClient);
                 break;
             case Com::PUSH_LEFT:
+                ROS_INFO("PUSH_LEFT");
                 FrameSequence(rss::sequences::PUSH_LEFT).play(x, y, jointPub, targetServiceClient);
                 break;
             case Com::SCOOP_RIGHT:
