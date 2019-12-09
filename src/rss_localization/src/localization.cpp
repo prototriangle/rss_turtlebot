@@ -249,14 +249,14 @@ int main(int argc, char **argv) {
   ros::NodeHandle n("~");
   ROS_INFO("Localization: Starting...");
   ScanProcessor scanProcessor(360);
-  ros::Subscriber scanSub = n.subscribe("/scan", 20, &ScanProcessor::recCallback, &scanProcessor);
-  ros::Subscriber initialMapSub = n.subscribe("/lf", 20, MapHandler::recCallback);
-  ros::Subscriber odomSub = n.subscribe("/odom", 20, odomCallback);
+  ros::Subscriber scanSub = n.subscribe("/scan", 1, &ScanProcessor::recCallback, &scanProcessor);
+  ros::Subscriber initialMapSub = n.subscribe("/lf", 1, MapHandler::recCallback);
+  ros::Subscriber odomSub = n.subscribe("/odom", 1, odomCallback);
   ros::Publisher posesPub = n.advertise<PoseArray>("particles", 2);
   ros::Publisher posePub = n.advertise<Odometry>("pose", 2);
   ros::Publisher weightsPub = n.advertise<MarkerArray>("weights", 2);
   ros::Subscriber rvizPoseSub = n.subscribe("/rviz_pose", 2, rvizPoseCallback);
-  ros::Rate loopRate(20);
+  ros::Rate loopRate(10);
 
   tf::TransformBroadcaster br;
 

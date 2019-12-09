@@ -18,7 +18,7 @@ Measurement ScanProcessor::getMeasurement() {
   vector<RangeAnglePair> ranges;
   for (unsigned int i = 0; i < rayCount; i += 3) {
     if (!useBadDataValue || currentScan.ranges[i] != badDataValue) {
-      if (currentScan.ranges[i] > currentScan.range_min
+      if (currentScan.ranges[i] > 0.175    // 0.175 is to remove the hits inside the robot itself
           && currentScan.ranges[i] < currentScan.range_max) {
         ranges.push_back({currentScan.ranges[i], angles[i]});
       }

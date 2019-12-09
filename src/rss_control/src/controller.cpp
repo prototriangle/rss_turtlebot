@@ -28,8 +28,14 @@ Controller::Controller() : nh_("~") {
     path_sub_ = nh_.subscribe<nav_msgs::Path>(path_in_topic, 1, &Controller::pathCallback, this);
     control_pub_ = nh_.advertise<geometry_msgs::Twist>("command", 10);
     next_point_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("next_point", 10);
+    status_pub_ = nh_.advertise<std_msgs::Int16>("status", 1, true);
 
     got_path_ = false;
+
+    // set status to 0 meaning that it's booted up
+    std_msgs::Int16 status_msg;
+    status_msg.data = 0;
+    status_pub_.publish(status_msg);
 }
 
 
@@ -38,6 +44,9 @@ void Controller::pathCallback(nav_msgs::Path path_msg) {
     path_frame_ = path_msg.header.frame_id;
     waypoints_ = path_msg.poses;
     got_path_ = true;
+    std_msgs::Int16 status_msg;
+    status_msg.data = 1; // set status to executing
+    status_pub_.publish(status_msg);
 }
 
 double euclidDistance(tf::Vector3 a, geometry_msgs::Pose b) {
@@ -46,7 +55,7 @@ double euclidDistance(tf::Vector3 a, geometry_msgs::Pose b) {
 
 void Controller::controlLoop() {
     if (!got_path_) {
-        ROS_INFO("Controller: Haven't received path yet...");
+        ROS_DEBUG("Controller: Haven't received path yet...");
         ros::Duration(1.0).sleep();
         return;
     }
@@ -67,7 +76,12 @@ void Controller::controlLoop() {
 
     if (waypoints_.empty()) {
         ROS_DEBUG("No more waypoints. Maybe reached goal?");
+        std_msgs::Int16 status_msg;
+        status_msg.data = 2; // set status to finished
+        status_pub_.publish(status_msg);
+        ros::Duration(1.0).sleep();
     } else {
+
         // get the next point for which we are aiming for
         ROS_DEBUG("Have %d waypoints left", (int)waypoints_.size());
         auto next_waypoint = waypoints_.front();
