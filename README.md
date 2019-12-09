@@ -72,3 +72,13 @@ Although the robot is robust and easy to use, real-world experiments are still t
 ![The simulation](img/simulation.png)
 
 The simulation was built with the existing tools available in Gazebo and the open-source turtlebot3 plugin which simulates the robot, its sensors and interfaces. However, due to the non-traditional pairing of the robot and the Interbotix robot arm, no easy method was found of simulating the arm and instead, we opted to build it from the ground up. As the arm use servos, we chose to use PID position controllers from the ROS `position_controllers` and `controller_manager` packages to simulate the arm joints. The arm was then dynamically and visually modelled from CAD files and specifications available from the manufacturers, resulting in an accurate representation of the arm. Finally, the arm controllers in the simulation were tuned to match the transfer function of the arm in the real world. However, we could not simulate the gripper behaviour in Gazebo due to no existing functionality for it and implementing that ourselves, seemed out of the scope of the project.
+
+Simulation can be launched with
+
+```bash
+roslaunch launch/simulation.launch use_gt:=false record:=false rviz:=false
+```
+
+_The `use_gt` flag enables ground truth odometry transform if in case you are not running a localisation node_
+
+The robot can then be controlled via the `/cmd_vel` topic.
