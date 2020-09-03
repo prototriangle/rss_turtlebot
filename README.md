@@ -1,6 +1,6 @@
 # RSS Turtlebot
 
-This is the practical project for the Robotics System and Science course at Edinburgh Uni.
+This is the practical project for the Robotics: Science and Systems (R:SS) course at Edinburgh Uni.
 
 We were tasked to use a simple wheeled mobile robot tasked with navigating autonomously around a known environment, interacting with objects and collecting rock samples with a robotic arm. More precisely, the robot is capable of:
 
